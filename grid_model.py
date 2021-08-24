@@ -17,6 +17,8 @@ from neo.core import AnalogSignal
 import quantities as pq
 from elephant import spike_train_generation as stg
 import copy
+import pdb
+import numba as nb
 
 
 def _grid_maker(spacing, orientation, pos_peak,
@@ -307,7 +309,7 @@ def _inhom_poiss(
     # length of the trajectory that mouse went
     np.random.seed(poiss_seed)
     n_cells = arr.shape[0]
-    spi_arr = np.zeros((n_cells, n_traj), dtype=np.ndarray)
+    spi_arr = np.zeros((n_traj, n_cells), dtype=np.ndarray)
     for grid_idc in range(n_cells):
         for i in range(n_traj):
             if diff_seed is True:
@@ -333,7 +335,8 @@ def _inhom_poiss(
             if shuffle is True:
                 curr_train = _randomize_grid_spikes(curr_train,
                                                     100, time_ms=dur_ms)
-            spi_arr[grid_idc, i] = np.array(curr_train)  # time conv to ms
+            spi_arr[i, grid_idc] = np.array(curr_train)  # time conv to ms
+    spi_arr = [[cell for cell in traj] for traj in spi_arr]
     return spi_arr
 
 
@@ -437,23 +440,25 @@ def grid_simulate(
 
     Returns
     -------
-        grid_spikes : numpy array
-        Spike times of the grid cell population
-        spacings : numpy array
+    grid_spikes : dict
+        Each key is a poisson seed containing a list of trajectories which
+        in turn contains a list of cells. This means:
+        len(grid_spikes.keys()) == len(poiss_seeds)
+        len(grid_spikes[key]) == len(trajs) and
+        len(grid_spikes[key][0]) == n_grid
+    spacings : numpy array
         Spacings of the grid cell population
-
     """
     dur_s = dur_ms / 1000
     T = 1 / f
-    if type(trajs) is int:
-        trajs = np.array([trajs])
 
+    trajs = np.array(trajs)
     n_traj = trajs.shape[0]
 
     if type(poiss_seeds) is int:
         poiss_seeds = np.array([poiss_seeds])
 
-    grid_spikes = np.zeros(len(poiss_seeds), dtype=np.ndarray)
+    grid_spikes = {}
 
     grids, spacings = _grid_population(
         n_grid, seed=grid_seed, arr_size=arr_size
@@ -475,5 +480,9 @@ def grid_simulate(
             dt_s=dt_s,
             poiss_seed=poiss_seed,
         )
-        grid_spikes[idx] = copy.deepcopy(curr_grid_spikes)
+        grid_spikes[poiss_seed] = curr_grid_spikes
+
     return grid_spikes, spacings
+
+if __name__ == '__main__':
+    test_grids, _ = grid_simulate([75, 73], 2000, 1, np.array([100, 101, 102]), False)
