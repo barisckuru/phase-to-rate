@@ -7,7 +7,7 @@ Created on Fri Aug 20 12:04:25 2021
 """
 
 
-import grid_model
+from grid_model import grid_simulate
 import dentate_simulate
 import neural_coding
 import numpy as np
@@ -47,10 +47,11 @@ n_sampleset = 1 #perc_seeds.shape[0]
 trajs = np.array([75, 74.5, 74, 70])
 n_traj = trajs.shape[0]
 
+trajs = 75
 
 'SIMULATION'
 
-grid_spikes = grid_model.grid_simulate(trajs, 2000, 400, np.arange(420,425,1), 'full', True)
+grid_spikes = grid_simulate(trajs, 2000, 400, poiss_seeds, False)
 
 gra_spikes = dentate_simulate.granule_simulate(grid_spikes, grid_seed, poiss_seed, tune, dur_ms, trajs, pp_weight=9e-4)
 grid_phases, gra_phases = neural_coding.spikes_n_phases(grid_spikes, gra_spikes, dur_ms, grid_seed, poiss_seeds, pp_weight, tune, shuffle)
