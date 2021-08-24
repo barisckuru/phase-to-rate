@@ -121,7 +121,6 @@ def _grid_maker(spacing, orientation, pos_peak,
     return rate
 
 
-
 def _grid_population(n_grid, seed, arr_size=200):
     """
     Generate a population of grid cells.
@@ -188,15 +187,14 @@ def _draw_traj(
     dur_ms=2000,
     speed_cm=20,
 ):
-    """Simuolate the mouse walking on parallel trajectories."""
-    all_grids = all_grids
+    """Obtain the firing profile for simulated linear trajectories."""
     size2cm = int(arr_size / field_size_cm)
     dur_s = dur_ms / 1000
     traj_len_cm = int(dur_s * speed_cm)
     traj_len_dp = traj_len_cm * size2cm
     par_idc_cm = par_trajs
     par_idc = par_idc_cm * size2cm - 1
-    n_traj = par_idc.shape[0]
+    n_traj = par_trajs.shape[0]
     # empty arrays
     traj = np.empty((n_grid, traj_len_dp))
     trajs = np.empty((n_grid, traj_len_dp, n_traj))
@@ -215,6 +213,7 @@ def _draw_traj(
 
 
 def _rate2dist(grids, spacings):
+    """Convert rate arrays into linear distance arrays."""
     grid_dist = np.zeros((grids.shape[0], grids.shape[1], grids.shape[2]))
     for i in range(grids.shape[2]):
         grid = grids[:, :, i]
@@ -229,7 +228,6 @@ def _rate2dist(grids, spacings):
     return grid_dist
 
 
-# interpolation
 def _interp(arr, dur_s, def_dt_s=0.025, new_dt_s=0.002):
     """Interpolate the given array with new dt in seconds."""
     arr_len = arr.shape[1]
@@ -242,9 +240,6 @@ def _interp(arr, dur_s, def_dt_s=0.025, new_dt_s=0.002):
         f = interpolate.interp1d(t_arr, arr, axis=1)
         interp_arr = f(new_t_arr)
     return interp_arr, new_t_arr
-
-
-"Randomize grid spikes"
 
 
 def _import_phase_dist(
@@ -283,9 +278,6 @@ def _randomize_grid_spikes(arr, bin_size_ms, time_ms=2000):
         spikes_ms = np.ones(rand_spikes.shape[0]) * (bin_size_ms*i)+rand_spikes
         randomized_grid = np.append(randomized_grid, np.array(spikes_ms))
     return np.sort(randomized_grid)
-
-
-"Generate shuffled/nonshuffled spikes with inh poisson funciton"
 
 
 def _inhom_poiss(
@@ -453,7 +445,14 @@ def grid_simulate(
     """
     dur_s = dur_ms / 1000
     T = 1 / f
+    if type(trajs) is int:
+        trajs = np.array([trajs])
+
     n_traj = trajs.shape[0]
+
+    if type(poiss_seeds) is int:
+        poiss_seeds = np.array([poiss_seeds])
+
     grid_spikes = np.zeros(len(poiss_seeds), dtype=np.ndarray)
 
     grids, spacings = _grid_population(
