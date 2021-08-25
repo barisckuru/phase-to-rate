@@ -12,70 +12,66 @@ import copy
 
 
 
-def mean_phase(spikes, bin_size_ms, n_phase_bins, dur_ms):
+def _spike_counter(spike_times, bin_size_ms=100, dur_ms=2000):
     n_bins = int(dur_ms/bin_size_ms)
-    n_cells =spikes.shape[0] 
-    n_traj = spikes.shape[1]
-    rad = n_phase_bins/360*2*np.pi
-    phases = np.zeros((n_bins, n_cells, n_traj))
-
+    n_cells = len(spike_times)
+    counts = np.zeros((n_cells, n_bins))
     for i in range(n_bins):
-        for idx, val in np.ndenumerate(spikes):
-            curr_train = val[((bin_size_ms*(i) < val) & (val < bin_size_ms*(i+1)))]
-            if curr_train.size != 0:
-                phases[i][idx] = np.mean(curr_train%(bin_size_ms)/(bin_size_ms)*rad)
-    return phases
-
-def mean_filler(phases):
-    mean_phases = np.mean(phases[phases!=0])
-    phases[phases==0] = mean_phases
-    return phases
-
-#Count the number of spikes in bins 
-
-def binned_ct(arr, bin_size_ms, dt_ms=25, time_ms=5000):
-    n_bins = int(time_ms/bin_size_ms)
-    n_cells = arr.shape[0] 
-    n_traj = arr.shape[1]
-    counts = np.zeros((n_bins, n_cells, n_traj))
-    for i in range(n_bins):
-        for index, value in np.ndenumerate(arr):
+        for idx, value in enumerate(spike_times):
             curr_ct = ((bin_size_ms*(i) < value) & (value < bin_size_ms*(i+1))).sum()
-            counts[i][index] = curr_ct
-            #search and count the number of spikes in the each bin range
+            counts[idx, i] = curr_ct
     return counts
 
 
 
-def spikes_n_phases(grid_spikes, gra_spikes, dur_ms, grid_seed, poiss_seeds, tune, shuffle, f=10, shift_deg=180):
-    T = 1/f
-    bin_size_ms = T*1000
-    n_phase_bins = 360
-    n_time_bins = int(dur_ms/bin_size_ms)
-    n_traj = grid_spikes[0][1]
-    n_grid = grid_spikes[0][0]
-    n_gra = gra_spikes[0][0]
-    grid_phases = np.zeros((len(poiss_seeds), n_traj, n_time_bins*n_grid))
-    gra_phases = np.zeros((len(poiss_seeds), n_traj, n_time_bins*n_gra))
+def _phase_definer(spike_times, nan_fill=True, bin_size_ms=100, dur_ms=2000):
+    n_bins = int(dur_ms/bin_size_ms)
+    n_cells = len(spike_times)
+    phases = np.zeros((n_cells, n_bins))
+    for i in range(n_bins):
+        for idx, val in enumerate(spike_times):
+            curr_train = val[((bin_size_ms*(i) < val) & (val < bin_size_ms*(i+1)))]
+            if curr_train.size != 0:
+                phases[idx, i] = np.mean(curr_train%(bin_size_ms)/(bin_size_ms)*2*np.pi)
+    if nan_fill is True:
+        mean_phases = np.mean(phases[phases != 0])
+        phases[phases == 0] = mean_phases
+    return phases
     
-    for i, poiss_seed in enumerate(poiss_seeds):
-        #grid phases
-        curr_grid_spikes = grid_spikes[i]
-        curr_grid_phases = mean_phase(curr_grid_spikes, bin_size_ms, n_phase_bins, dur_ms)
-        curr_grid_phases = mean_filler(curr_grid_phases)
-        n_bins, n_cells, n_traj = curr_grid_phases.shape
-        grid_phases[i, :, :] = np.moveaxis(curr_grid_phases, 2, 0).reshape(n_traj, n_bins*n_cells)
-        #granule phases
-        curr_gra_spikes = gra_spikes[i]
-        curr_gra_phases = mean_phase(curr_gra_spikes, bin_size_ms, n_phase_bins, dur_ms)
-        gra_phases[i, :, :] = np.moveaxis(curr_gra_phases, 2, 0).reshape(n_traj, n_bins*n_cells)
-        grid_spikes[i] = copy.deepcopy(curr_grid_spikes)
-        gra_spikes[i] = copy.deepcopy(curr_gra_spikes)
-    return grid_phases, gra_phases
 
 
+def rate_n_phase(spike_times, poiss_seeds, trajs, nan_fill=True, bin_size_ms=100, dur_ms=2000):
+    n_bins = int(dur_ms/bin_size_ms)
+    n_traj = len(trajs)
+    n_poiss = len(poiss_seeds)
+    n_cell = len(spike_times[poiss_seeds[0]][0])
+    counts = np.empty((n_cell, n_bins, n_traj, n_poiss))
+    phases = np.empty((n_cell, n_bins, n_traj, n_poiss))
+    for seed_idx, seed in enumerate(poiss_seeds):
+        spike_times_single_seed = spike_times[seed]
+        for traj_idx in range(n_traj):
+            spike_times_sigle_traj = spike_times_single_seed[traj_idx]
+            single_count = _spike_counter(spike_times_sigle_traj, bin_size_ms=bin_size_ms, dur_ms=dur_ms)
+            single_phase = _phase_definer(spike_times_sigle_traj, bin_size_ms=bin_size_ms, dur_ms=dur_ms)
+            counts[:,:,traj_idx,seed_idx] = single_count
+            phases[:,:,traj_idx,seed_idx] = single_phase
+    return counts, phases
+    
+
+# phases = _phase_definer(test_grids[100][0])     
+    
+# counts = _spike_counter(test_grids[100][0])     
+
+# poiss_seeds = np.array([100, 101, 102])
+# trajs = [75, 73]
+    
+# counts, phases = rate_n_phase(test_grids, poiss_seeds, trajs)
 
 
+    
+    
+
+'code_maker will be updated!'
 def code_maker(spike_cts, phases):
     
     #change rate code to mean of non zeros where it is nonzero
@@ -102,23 +98,6 @@ def code_maker(spike_cts, phases):
     return rate_code, phase_code, polar_code
 
 
-'will be deprecated'
-# def overall_spike_ct(grid_spikes, gra_spikes, dur_ms, poiss_seeds, n_traj=2):
-#     n_bin = int(dur_ms/bin_size)
-#     dur_s = dur_ms/1000
-#     counts_grid_1 = np.zeros((len(poiss_seeds), n_bin*n_grid))
-#     counts_grid_2 = np.zeros((len(poiss_seeds), n_bin*n_grid))
-#     counts_gra_1 = np.zeros((len(poiss_seeds), n_bin*n_granule))
-#     counts_gra_2 = np.zeros((len(poiss_seeds), n_bin*n_granule))
-
-#     for idx, poiss_seed in enumerate(poiss_seeds):
-#         counts_grid_1[idx,:] = binned_ct(grid_spikes[idx], bin_size, time_ms=dur_ms)[:,:,0].flatten()
-#         counts_grid_2[idx,:] = binned_ct(grid_spikes[idx], bin_size, time_ms=dur_ms)[:,:,1].flatten()
-#         counts_gra_1[idx,:] = binned_ct(gra_spikes[idx], bin_size, time_ms=dur_ms)[:,:,0].flatten()
-#         counts_gra_2[idx,:] = binned_ct(gra_spikes[idx], bin_size, time_ms=dur_ms)[:,:,1].flatten()
-#     counts_grid = np.vstack((counts_grid_1, counts_grid_2))
-#     counts_granule = np.vstack((counts_gra_1, counts_gra_2))
-#     return counts_grid, counts_granule   
 
 
 
