@@ -341,7 +341,7 @@ def _inhom_poiss(
 
 
 def _overall(dist_trajs, rate_trajs, shift_deg, T,
-             n_traj, rate_scale, speed_cm, dur_s=2):
+             n_traj, rate_scale, speed_cm, scaling_factor=5, dur_s=2):
     """
     Generate the overall oscillatory firing profile for simulated trajecotries.
 
@@ -360,8 +360,11 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
     rate_scale : int
         for adjusting the firing rate.
     speed_cm : int
-        walking speed of mouse in centimeters.
-    dur_s : TYPE, optional
+        walking speed of mouse in centimeters,
+        increases the firing rate.
+     scaling_factor : int
+        adjust the firing rate. The default is 5.
+    dur_s : int
         duration of simulation in seconds. The default is 2.
 
     Returns
@@ -390,11 +393,10 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
     theta_phase = np.repeat(theta_phase[:, :, np.newaxis], n_traj, axis=2)
     firing_phase_dir = 2 * np.pi * (traj_dist_dir + 0.5) * factor
     phase_code_dir = np.exp(1.5 * np.cos(firing_phase_dir - theta_phase))
+    # firing rate could be scaled by scaling factor or speed
     scaling_factor = 5
     constant_mv = 0.16
-    # rate could be scaled by rate_scale or speed
-    rate = rate_scale*speed_cm/20
-    overall = phase_code_dir * rate_trajs * rate * constant_mv * scaling_factor
+    overall = phase_code_dir * rate_trajs * speed_cm * constant_mv * scaling_factor
     return overall
 
 
