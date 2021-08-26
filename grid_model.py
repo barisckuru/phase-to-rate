@@ -430,8 +430,8 @@ def grid_simulate(
         Seed for the deterministic generation of a random grid cell population
     poiss_seeds : numpy array
         Seeds to simulate different trials via inhomegenous poisson function
-    shuffle : Boolean
-        To decide if phases  of grid cells shoud be shuffled
+    shuffle : str
+        TODO "shuffled" or "non-shuffled"
     n_grid : int
         Number of grid cells in the population
     speed_cm : int
