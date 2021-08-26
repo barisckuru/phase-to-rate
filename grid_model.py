@@ -287,7 +287,7 @@ def _inhom_poiss(
     n_traj,
     dur_s,
     shuffle=False,
-    diff_seed=True,
+    diff_seed=False,
     poiss_seed=0,
     dt_s=0.025,
     dur_ms=2000,
@@ -406,6 +406,7 @@ def grid_simulate(
     grid_seed,
     poiss_seeds,
     shuffle,
+    diff_seed,
     n_grid=200,
     speed_cm=20,
     rate_scale=1,
@@ -479,6 +480,7 @@ def grid_simulate(
             n_traj,
             dur_s,
             shuffle=shuffle,
+            diff_seed=diff_seed,
             dt_s=dt_s,
             poiss_seed=poiss_seed,
         )
@@ -487,4 +489,4 @@ def grid_simulate(
     return grid_spikes, spacings
 
 if __name__ == '__main__':
-    test_grids, _ = grid_simulate([75, 73], 2000, 1, np.array([100, 101, 102]), False)
+    test_grids, _ = grid_simulate([75, 74.5, 74, 70], 2000, 1, np.array([150, 250, 350]), False, False)
