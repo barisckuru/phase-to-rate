@@ -286,7 +286,7 @@ def _inhom_poiss(
     arr,
     n_traj,
     dur_s,
-    shuffle=False,
+    shuffle,
     diff_seed=False,
     poiss_seed=0,
     dt_s=0.025,
@@ -296,7 +296,7 @@ def _inhom_poiss(
 
     Parameters
     ----------
-    shuffle : Boolean
+    shuffle : str
         option to shuffle phases of grid cells
     diff_seed : Boolean
         option to decide seeding inh poiss function
@@ -309,6 +309,13 @@ def _inhom_poiss(
     # length of the trajectory that mouse went
     np.random.seed(poiss_seed)
     n_cells = arr.shape[0]
+    if shuffle == 'shuffled':
+        shuffled = True
+    elif shuffle == 'non-shuffled':
+        shuffled = False
+    else:
+        raise ValueError('Shuffling is not defined correctly')
+
     spi_arr = np.zeros((n_traj, n_cells), dtype=np.ndarray)
     for grid_idc in range(n_cells):
         for i in range(n_traj):
@@ -332,7 +339,7 @@ def _inhom_poiss(
                 )
                 * 1000
             )
-            if shuffle is True:
+            if shuffled is True:
                 curr_train = _randomize_grid_spikes(curr_train,
                                                     100, time_ms=dur_ms)
             spi_arr[i, grid_idc] = np.array(curr_train)  # time conv to ms
@@ -430,8 +437,11 @@ def grid_simulate(
         Seed for the deterministic generation of a random grid cell population
     poiss_seeds : numpy array
         Seeds to simulate different trials via inhomegenous poisson function
-    shuffle : str
-        TODO "shuffled" or "non-shuffled"
+    shuffle : str ("shuffled" or "non-shuffled")
+        Shuffles the spike times in individual time bins
+    diff_seed : Boolean
+        Decides if inhomogenous poisson function is reseeded
+        with a new set of seeds for different trajectories
     n_grid : int
         Number of grid cells in the population
     speed_cm : int
@@ -489,4 +499,4 @@ def grid_simulate(
     return grid_spikes, spacings
 
 if __name__ == '__main__':
-    test_grids, _ = grid_simulate([75, 74.5, 74, 70], 2000, 1, np.array([150, 250, 350]), False, False)
+    test_grids, _ = grid_simulate([75, 74.5, 74, 70], 2000, 1, np.array([150, 250, 350]), "non-shuffled", False)

@@ -13,9 +13,9 @@ shuffled = ["shuffled", "non-shuffled"]
 poisson_reseeding = True  # Controls seeding between trajectories
 speed_cm = 20
 dur_ms = 2000
-rate_scale = 10
+rate_scale = 1
 n_grid = 200
-pp_weight = 0.9e6  # TODO Put correct value!
+pp_weight = 9e-4
 network_type = 'tuned'  # TODO Ignore for now implement more models later
 
 
