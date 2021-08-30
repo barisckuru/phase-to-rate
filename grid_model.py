@@ -245,7 +245,7 @@ def _interp(arr, dur_s, def_dt_s=0.025, new_dt_s=0.002):
 
 
 def _import_phase_dist(
-        path="/home/baris/phase_coding/norm_grid_phase_dist.npz"):
+        path="norm_grid_phase_dist.npz"):
     """Import default, non shuffled and saved phase distributions."""
     norm_n = np.load(path)["grid_norm_dist"]
     dt_s = 0.001

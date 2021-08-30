@@ -224,9 +224,32 @@ pearson3 = pearsonr(phase_code[:,0,0], phase_code[:,1,1])
 pearson31 = pearsonr(phase_code[:,0,0], phase_code[:,2,0])
 pearson32 = pearsonr(phase_code[:,0,0], phase_code[:,2,1])
 
-pearson4 = pearsonr(counts[:,:,0,0].flatten(), counts[:,:,0,1].flatten())
-pearson5 = pearsonr(counts[:,:,0,0].flatten(), counts[:,:,1,0].flatten())
-pearson6 = pearsonr(counts[:,:,0,0].flatten(), counts[:,:,1,1].flatten())
+pearson4 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,0,1].flatten())
+pearson5 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,1,0].flatten())
+pearson6 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,1,1].flatten())
+
+
+pearson4 = pearsonr(counts[:,10,0,0].flatten(), counts[:,10,0,1].flatten())
+pearson5 = pearsonr(counts[:,10,0,0].flatten(), counts[:,10,1,0].flatten())
+pearson6 = pearsonr(counts[:,10,0,0].flatten(), counts[:,10,1,1].flatten())
+
+
+
+pearson4 = pearsonr(counts[:,12,0,0].flatten(), counts[:,12,0,1].flatten())
+pearson5 = pearsonr(counts[:,12,0,0].flatten(), counts[:,12,1,0].flatten())
+pearson6 = pearsonr(counts[:,12,0,0].flatten(), counts[:,12,1,1].flatten())
+
+
+pearson4 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,0,2])
+pearson5 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,3,0])
+pearson6 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,3,2])
+
+
+
+pearson4 = spearmanr(counts[:,5,0,0], counts[:,5,0,2])
+pearson5 = spearmanr(counts[:,5,0,0], counts[:,5,3,0])
+pearson6 = spearmanr(counts[:,5,0,0], counts[:,5,3,2])
+
 
 
 pearson4 = spearmanr(counts[:,:,0,0].flatten(), counts[:,:,0,1].flatten())
