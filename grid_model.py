@@ -18,7 +18,6 @@ import quantities as pq
 from elephant import spike_train_generation as stg
 import copy
 import pdb
-import numba as nb
 
 
 def _grid_maker(spacing, orientation, pos_peak,
