@@ -99,10 +99,14 @@ poiss_seeds = np.array([100, 201, 302])#
 trajs = [75, 74, 65]
 
 
-poiss_seeds = np.array([150, 250, 350])
-trajs =  [75, 74, 73, 70]
+poisson_seeds = np.array([100])
+trajs =  [75]
 
-counts, phases, rate_code, phase_code, polar_code = rate_n_phase(test_grids, poiss_seeds, trajs)
+
+test_grids = storage['grid_spikes']["non-shuffled"]
+
+test_gras = storage['granule_spikes']["shuffled"]
+counts, phases, rate_code, phase_code, polar_code = rate_n_phase(test_gras, poisson_seeds, trajs, dur_ms=100)
 
 # counts1, phases1, rate_code1, phase_code1, polar_code1 = rate_n_phase(test_grids, poiss_seeds, trajs, nan_fill=False)
 

@@ -347,7 +347,7 @@ def _inhom_poiss(
 
 
 def _overall(dist_trajs, rate_trajs, shift_deg, T,
-             n_traj, rate_scale, speed_cm, scaling_factor=5, dur_s=2):
+             n_traj, rate_scale, speed_cm, dur_s):
     """
     Generate the overall oscillatory firing profile for simulated trajecotries.
 
@@ -364,14 +364,12 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
     n_traj : int
         number of trajectories.
     rate_scale : int
-        for adjusting the firing rate.
+        adjust the firing rate.
     speed_cm : int
         walking speed of mouse in centimeters,
         increases the firing rate.
-     scaling_factor : int
-        adjust the firing rate. The default is 5.
     dur_s : int
-        duration of simulation in seconds. The default is 2.
+        duration of simulation in seconds.
 
     Returns
     -------
@@ -399,10 +397,9 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
     theta_phase = np.repeat(theta_phase[:, :, np.newaxis], n_traj, axis=2)
     firing_phase_dir = 2 * np.pi * (traj_dist_dir + 0.5) * factor
     phase_code_dir = np.exp(1.5 * np.cos(firing_phase_dir - theta_phase))
-    # firing rate could be scaled by scaling factor or speed
-    scaling_factor = 5
+    # constant from the original equation for conversion
     constant_mv = 0.16
-    overall = phase_code_dir * rate_trajs * speed_cm * constant_mv * scaling_factor
+    overall = phase_code_dir * rate_trajs * speed_cm * constant_mv * rate_scale
     return overall
 
 
@@ -415,7 +412,7 @@ def grid_simulate(
     diff_seed,
     n_grid=200,
     speed_cm=20,
-    rate_scale=1,
+    rate_scale=5,
     arr_size=200,
     f=10,
     shift_deg=180,
@@ -449,6 +446,7 @@ def grid_simulate(
         Faster the mouse, higher the firing rate
     rate_scale : int
         Scale the firing rate of grid cells
+        The default is 5.
 
     Returns
     -------
@@ -480,8 +478,8 @@ def grid_simulate(
     rate_trajs = _draw_traj(grids, n_grid, trajs, dur_ms=dur_ms)
     rate_trajs, rate_t_arr = _interp(rate_trajs, dur_s)
     overall = _overall(
-        dist_trajs, rate_trajs, shift_deg, T, n_traj, rate_scale, speed_cm
-    )
+        dist_trajs, rate_trajs, shift_deg, T,
+        n_traj, rate_scale, speed_cm, dur_s)
 
     for idx, poiss_seed in enumerate(poiss_seeds):
         curr_grid_spikes = _inhom_poiss(
@@ -498,4 +496,4 @@ def grid_simulate(
     return grid_spikes, spacings
 
 if __name__ == '__main__':
-    test_grids, _ = grid_simulate([75, 74.5, 74, 70], 2000, 1, np.array([150, 250, 350]), "non-shuffled", False)
+    test_grids, _ = grid_simulate([75, 74, 70], 2000, 1, np.array([150, 250]), "non-shuffled", False)

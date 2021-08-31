@@ -1,30 +1,38 @@
 from pydentate import net_tunedrev, neuron_tools
 from grid_model import grid_simulate
 import shelve
+import time
+import numpy as np
+import scipy.stats as stats
+
+start = time.time()
+
 
 """Setup"""
-neuron_tools.load_compiled_mechanisms(path='precompiled')
+neuron_tools.load_compiled_mechanisms(path='/home/baris/pydentate/mechs/x86_64/libnrnmech.so')
 
 """Parameters"""
 grid_seeds = [1]
-poisson_seeds = [100]
-trajectories = [75,74]  # In cm
+poisson_seeds = [100, 101]
+trajectories = [75, 73]  # In cm
 shuffled = ["shuffled", "non-shuffled"]
 poisson_reseeding = True  # Controls seeding between trajectories
 speed_cm = 20
-dur_ms = 2000
-rate_scale = 1
+dur_ms = 1000
+rate_scale = 5
 n_grid = 200
 pp_weight = 9e-4
+input_scale = 1000
 network_type = 'tuned'
 
+print('grid', grid_seeds, 'poiss', poisson_seeds, 'traj', trajectories, 'dur', dur_ms)
 
 for grid_seed in grid_seeds:
     for poisson_seed in poisson_seeds:
         storage = {'grid_spikes': {},
                     'granule_spikes': {}}
         for shuffling in shuffled:
-            grid_spikes = grid_simulate(trajs=trajectories,
+            grid_spikes, _ = grid_simulate(trajs=trajectories,
                                         dur_ms=dur_ms,
                                         grid_seed=grid_seed,
                                         poiss_seeds=poisson_seed,
@@ -69,7 +77,7 @@ for grid_seed in grid_seeds:
                 PP_to_BCs = np.array(PP_to_BCs)
                 PP_to_BCs = PP_to_BCs[0:24]
             
-                nw = net_tunedrev(curr_grid_spikes,
+                nw = net_tunedrev.TunedNetwork(None, curr_grid_spikes,
                                   PP_to_GCs,
                                   PP_to_BCs,
                                   pp_weight=pp_weight)
@@ -107,6 +115,11 @@ for grid_seed in grid_seeds:
         # save_storage TODO shelve
 
 
-"grid_seed_poisson_seed_reseeding-True"
+# "grid_seed_poisson_seed_reseeding-True"
 
 
+stop = time.time()
+time_sec = stop-start
+time_min = time_sec/60
+time_hour = time_min/60
+print('time, ', time_sec, ' sec, ', time_min, ' min, ', time_hour, 'hour  ')
