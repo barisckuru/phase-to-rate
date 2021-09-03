@@ -4,6 +4,7 @@ import shelve
 import time
 import numpy as np
 import scipy.stats as stats
+import copy
 
 start = time.time()
 
@@ -12,13 +13,13 @@ start = time.time()
 neuron_tools.load_compiled_mechanisms(path='/home/baris/pydentate/mechs/x86_64/libnrnmech.so')
 
 """Parameters"""
-grid_seeds = [1]
-poisson_seeds = [100, 101]
-trajectories = [75, 73]  # In cm
+grid_seeds = [200]
+poisson_seeds = [100]
+trajectories = [75]  # In cm
 shuffled = ["shuffled", "non-shuffled"]
 poisson_reseeding = True  # Controls seeding between trajectories
 speed_cm = 20
-dur_ms = 1000
+dur_ms = 100
 rate_scale = 5
 n_grid = 200
 pp_weight = 9e-4
@@ -45,6 +46,8 @@ for grid_seed in grid_seeds:
             granule_spike_list = []
             for curr_grid_spikes in grid_spikes[poisson_seed]:
                 np.random.seed(grid_seed)
+                
+                curr = copy.deepcopy(curr_grid_spikes)
 
                 # Randomly choose target cells for the PP lines
                 gauss_gc = stats.norm(loc=1000, scale=input_scale)
@@ -54,7 +57,7 @@ for grid_seed in grid_seeds:
                 pdf_bc = gauss_bc.pdf(np.arange(24))
                 pdf_bc = pdf_bc/pdf_bc.sum()
                 GC_indices = np.arange(2000)
-                start_idc = np.random.randint(0, 1999, size=400)
+                start_idc = np.random.randint(0, 1999, size=200) #was 400
             
                 PP_to_GCs = []
                 for x in start_idc:
@@ -63,7 +66,6 @@ for grid_seed in grid_seeds:
                                                       p=pdf_gc))
             
                 PP_to_GCs = np.array(PP_to_GCs)
-                PP_to_GCs = PP_to_GCs[0:24]
             
                 BC_indices = np.arange(24)
                 start_idc = np.array(((start_idc/2000.0)*24), dtype=int)
@@ -77,9 +79,9 @@ for grid_seed in grid_seeds:
                 PP_to_BCs = np.array(PP_to_BCs)
                 PP_to_BCs = PP_to_BCs[0:24]
             
-                nw = net_tunedrev.TunedNetwork(None, curr_grid_spikes,
-                                  PP_to_GCs,
-                                  PP_to_BCs,
+                nw = net_tunedrev.TunedNetwork(None, np.array(curr_grid_spikes),
+                                  np.array(PP_to_GCs),
+                                  np.array(PP_to_BCs),
                                   pp_weight=pp_weight)
 
                 # Handle the different cases of inhibition
@@ -103,7 +105,7 @@ for grid_seed in grid_seeds:
                 elif network_type != 'tuned':
                     raise ValueError("network_type must be 'tuned', 'no-feedback', 'no-feedforward' or 'disinhibited'")
                 
-                neuron_tools.run_neuron_simulator()
+                neuron_tools.run_neuron_simulator(t_stop=dur_ms)
                 
                 granule_spike_list.append(nw.populations[0].get_timestamps())
 

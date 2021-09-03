@@ -28,7 +28,7 @@ trajectories = [75]  # In cm
 shuffled = ["shuffled", "non-shuffled"]
 poisson_reseeding = True  # Controls seeding between trajectories
 speed_cm = 20
-dur_ms = 100
+dur_ms = 200
 rate_scale = 5
 n_grid = 200
 pp_weight = 9e-4
@@ -41,9 +41,9 @@ print('grid', grid_seeds, 'poiss', poisson_seeds, 'traj', trajectories, 'dur', d
 for grid_seed in grid_seeds:
     output_path = f'{grid_seed}_{poisson_seeds}_{poisson_reseeding}'
     # save_storage TODO shelve
-    storage = shelve.open('grid_seed_poisson_seed_reseeding_'+output_path, writeback=True)
-    grid_dict = {'grid_spikes': {}}
-    granule_dict ={'granule_spikes': {}}
+    storage = shelve.open('/home/baris/results/grid_seed_poisson_seed_reseeding_'+output_path, writeback=True)
+    storage = {'grid_spikes': {},
+               'granule_spikes': {}}
     for shuffling in shuffled:
         grid_spikes, _ = grid_simulate(trajs=trajectories,
                                     dur_ms=dur_ms,
@@ -55,16 +55,15 @@ for grid_seed in grid_seeds:
                                     speed_cm=speed_cm,
                                     rate_scale=rate_scale)
         granule_spikes = granule_simulate(grid_spikes, 
+                                          dur_ms=dur_ms, 
                                           poisson_seeds=poisson_seeds, 
                                           network_type=network_type, 
                                           grid_seed=grid_seed, 
                                           pp_weight=pp_weight)
 
-        grid_dict['grid_spikes'][shuffling] = grid_spikes
-        granule_dict['granule_spikes'][shuffling] = granule_spikes
+        storage['grid_spikes'][shuffling] = copy.deepcopy(grid_spikes)
+        storage['granule_spikes'][shuffling] = copy.deepcopy(granule_spikes)
 
-        storage['grid_spikes'] = copy.deepcopy(grid_dict)
-        storage['granule_spikes'] = copy.deepcopy(granule_dict)
 
 # "grid_seed_poisson_seed_reseeding-True"
 

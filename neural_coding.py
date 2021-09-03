@@ -94,7 +94,7 @@ def code_maker(single_count, single_phase, phase_of_rate_code=np.pi/4, rate_in_p
 
 
 
-poiss_seeds = np.array([100, 201, 302])#
+poiss_seeds = np.array([100, 201, 302])
 
 trajs = [75, 74, 65]
 
@@ -106,9 +106,23 @@ trajs =  [75]
 test_grids = storage['grid_spikes']["non-shuffled"]
 
 test_gras = storage['granule_spikes']["shuffled"]
-counts, phases, rate_code, phase_code, polar_code = rate_n_phase(test_gras, poisson_seeds, trajs, dur_ms=100)
+counts, phases, rate_code, phase_code, polar_code = rate_n_phase(test_gras, poisson_seeds, trajs, dur_ms=dur_ms)
 
 # counts1, phases1, rate_code1, phase_code1, polar_code1 = rate_n_phase(test_grids, poiss_seeds, trajs, nan_fill=False)
+
+
+for i in range(2000):
+    # print(np.array([nw.populations[0].ap_counters[i+200][0].as_numpy()], dtype=object))
+    if len(nw.populations[0].ap_counters[i][0].as_numpy()) != 0:
+        print(i)
+        print(nw.populations[0].ap_counters[i][0].as_numpy())
+    
+np.array(nw.populations[0].ap_counters[1151][0])
+
+# .as_numpy()
+    # np.array([cell[0].as_numpy() for cell in nw.populations[0].ap_counters], dtype=object)
+
+
 
 from scipy.stats import pearsonr,  spearmanr
 
