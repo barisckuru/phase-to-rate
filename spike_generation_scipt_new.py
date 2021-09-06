@@ -23,11 +23,30 @@ neuron_tools.load_compiled_mechanisms(path='/home/baris/pydentate/mechs/x86_64/l
 
 
 """Parameters"""
-grid_seeds = [1]
-poisson_seeds = np.arange(100,120,1)
+grid_seeds = [1,2]
+
+# trajectories = [75]  # In cm
+# trajectories = [74.5]
+# trajectories = [74]
+# trajectories = [73.5]
+# trajectories = [73]
+# trajectories = [72.5]
+# trajectories = [72]
+# trajectories = [71]
+# trajectories = [70]
+# trajectories = [69]
+# trajectories = [68]
+# trajectories = [67]
+# trajectories = [66]
+# trajectories = [65]
+trajectories = [60]
+
+p = 100*trajectories[0]-5000
+poisson_seeds = np.arange(p,p+20,1)
 poisson_seeds = list(poisson_seeds)
-trajectories = [75]  # In cm
-shuffling = "non-shuffled"
+
+
+# shuffling = "non-shuffled"
 shuffling = "shuffled"
 # poisson_reseeding = True  # Controls seeding between trajectories
 speed_cm = 20
@@ -49,10 +68,10 @@ print('grid', grid_seeds, 'poiss', poisson_seeds, 'traj', trajectories, 'dur', d
 
 
 for grid_seed in grid_seeds:
-    output_path = f'{grid_seed}_{trajectories}_{dur_ms}'
+    output_path = f'{grid_seed}_{trajectories}_{poisson_seeds[0]}-{poisson_seeds[-1]}_{dur_ms}'
     storage = shelve.open(
-        '/home/baris/results/grid-seed_trajectory_duration_shuffling_tuning_' + 
-        output_path + '_' + shuffling + network_type, writeback=True)
+        '/home/baris/results/grid-seed_trajectory_poisson-seeds_duration_shuffling_tuning_' + 
+        output_path + '_' + shuffling + '_' + network_type, writeback=True)
     # storage = {'grid_spikes': {},
     #            'granule_spikes': {}}
     grid_spikes, _ = grid_simulate(trajs=trajectories,
@@ -84,6 +103,19 @@ for grid_seed in grid_seeds:
     storage['parameters'] = parameters
 
 storage.close()
+
+
+output_name = f'{grid_seed}_{dur_ms}'
+storage_path = '/home/baris/results/grid-seed_duration_shuffling_tuning_'
+storage_name =  storage_path +  output_name + '_' + shuffling + '_' + network_type
+collective_storage = shelve.open(storage_name, writeback=True)
+traj_key = str(traj)
+collective_storage[traj_key] = {}
+collective_storage[traj_key]['grid_spikes'] = copy.deepcopy(grid_spikes[traj])
+collective_storage[traj_key]['granule_spikes'] = copy.deepcopy(granule_spikes[traj])
+collective_storage[traj_key]['parameters'] = parameters
+
+collective_storage.close()
 
 # "grid_seed_poisson_seed_reseeding-True"
 
