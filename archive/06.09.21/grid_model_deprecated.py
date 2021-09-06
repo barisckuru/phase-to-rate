@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep  2 13:41:31 2021
+Created on Fri Aug 20 10:50:07 2021
 
 @author: baris
 """
-
 
 
 import numpy as np
@@ -339,85 +338,15 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
     return overall
 
 
-'depreciated'
-# def _spike_generator(
-#     arr,
-#     trajs,
-#     dur_s,
-#     shuffle,
-#     diff_seed=False,
-#     poisson_seed=0,
-#     dt_s=0.025,
-#     dur_ms=2000,
-# ):
-#     """Generate spikes from a seeded inhomogeneous Poisson function.
-
-#     Parameters
-#     ----------
-#     shuffle : str
-#         option to shuffle phases of grid cells
-#     diff_seed : Boolean
-#         option to decide seeding inh poiss function
-#         with same or diff seeds.
-
-#     Returns
-#     -------
-#     Spike times in miliseconds
-#     """
-#     n_traj = len(trajs)
-#     # length of the trajectory that mouse went
-#     np.random.seed(poiss_seed)
-#     n_cells = arr.shape[0]
-#     if shuffle == 'shuffled':
-#         shuffled = True
-#     elif shuffle == 'non-shuffled':
-#         shuffled = False
-#     else:
-#         raise ValueError('Shuffling is not defined correctly')
-
-#     # spi_arr = np.zeros((n_traj, n_cells), dtype=np.ndarray)
-    
-#     spikes = {}
-    
-#     for grid_idc in range(n_cells):
-#         for i in range(n_traj):
-#             if diff_seed is True:
-#                 np.random.seed(poiss_seed + grid_idc + (5 * i))
-#             elif diff_seed is False:
-#                 np.random.seed(poiss_seed + grid_idc)
-
-#             rate_profile = arr[grid_idc, :, i]
-#             asig = AnalogSignal(
-#                 rate_profile,
-#                 units=1 * pq.Hz,
-#                 t_start=0 * pq.s,
-#                 t_stop=dur_s * pq.s,
-#                 sampling_period=dt_s * pq.s,
-#                 sampling_interval=dt_s * pq.s,
-#             )
-#             curr_train = (
-#                 stg.inhomogeneous_poisson_process(
-#                     asig, refractory_period=0.001 * pq.s, as_array=True
-#                 )
-#                 * 1000
-#             )
-#             if shuffled is True:
-#                 curr_train = _randomize_grid_spikes(curr_train,
-#                                                     100, time_ms=dur_ms)
-                
-#             spikes[trajs[i]] = np.array(curr_train)
-#     #         spi_arr[i, grid_idc] = np.array(curr_train)  # time conv to ms
-#     # spi_arr = [[cell for cell in traj] for traj in spi_arr]
-#     return spikes
-
-
 def _spike_generator(
     arr,
     trajs,
     dur_s,
-    poiss_seeds,
     shuffle,
+    diff_seed=False,
+    poiss_seed=0,
     dt_s=0.025,
+    dur_ms=2000,
 ):
     """Generate spikes from a seeded inhomogeneous Poisson function.
 
@@ -434,7 +363,8 @@ def _spike_generator(
     Spike times in miliseconds
     """
     n_traj = len(trajs)
-    dur_ms = dur_s*1000
+    # length of the trajectory that mouse went
+    np.random.seed(poiss_seed)
     n_cells = arr.shape[0]
     if shuffle == 'shuffled':
         shuffled = True
@@ -443,38 +373,40 @@ def _spike_generator(
     else:
         raise ValueError('Shuffling is not defined correctly')
 
-    # spi_arr = np.zeros((n_traj, n_cells), dtype=np.ndarray)
-    grid_spikes = {}
-    for i in range(n_traj):
-        traj = trajs[i]
-        spikes_poisson = {}
-        for poiss_seed in poiss_seeds:
-            spikes_cell = []
-            for grid_idc in range(n_cells):
+    spi_arr = np.zeros((n_traj, n_cells), dtype=np.ndarray)
+    
+    spikes = {}
+    
+    for grid_idc in range(n_cells):
+        for i in range(n_traj):
+            if diff_seed is True:
+                np.random.seed(poiss_seed + grid_idc + (5 * i))
+            elif diff_seed is False:
                 np.random.seed(poiss_seed + grid_idc)
-                rate_profile = arr[grid_idc, :, i]
-                asig = AnalogSignal(
-                    rate_profile,
-                    units=1 * pq.Hz,
-                    t_start=0 * pq.s,
-                    t_stop=dur_s * pq.s,
-                    sampling_period=dt_s * pq.s,
-                    sampling_interval=dt_s * pq.s,
-                )
-                curr_train = (
-                    stg.inhomogeneous_poisson_process(
-                        asig, refractory_period=0.001 * pq.s, as_array=True
-                    )
-                    * 1000
-                )
-                if shuffled is True:
-                    curr_train = _randomize_grid_spikes(curr_train,
-                                                        100, time_ms=dur_ms)
-                spikes_cell.append(np.array(curr_train))
-            spikes_poisson[poiss_seed] = spikes_cell
-        grid_spikes[traj] = spikes_poisson
 
-    return grid_spikes
+            rate_profile = arr[grid_idc, :, i]
+            asig = AnalogSignal(
+                rate_profile,
+                units=1 * pq.Hz,
+                t_start=0 * pq.s,
+                t_stop=dur_s * pq.s,
+                sampling_period=dt_s * pq.s,
+                sampling_interval=dt_s * pq.s,
+            )
+            curr_train = (
+                stg.inhomogeneous_poisson_process(
+                    asig, refractory_period=0.001 * pq.s, as_array=True
+                )
+                * 1000
+            )
+            if shuffled is True:
+                curr_train = _randomize_grid_spikes(curr_train,
+                                                    100, time_ms=dur_ms)
+                
+            spikes[trajs[i]] = np.array(curr_train)
+            spi_arr[i, grid_idc] = np.array(curr_train)  # time conv to ms
+    spi_arr = [[cell for cell in traj] for traj in spi_arr]
+    return spi_arr
 
 
 def grid_simulate(
@@ -483,6 +415,7 @@ def grid_simulate(
     grid_seed,
     poiss_seeds,
     shuffle,
+    diff_seed,
     n_grid=200,
     speed_cm=20,
     rate_scale=5,
@@ -536,11 +469,12 @@ def grid_simulate(
     T = 1 / f
 
     trajs = np.array(trajs)
-    print(trajs)
-    n_traj = len(trajs)
+    n_traj = trajs.shape[0]
 
     if type(poiss_seeds) is int:
         poiss_seeds = np.array([poiss_seeds])
+
+    grid_spikes = {}
 
     grids, spacings = _grid_population(
         n_grid, seed=grid_seed, arr_size=arr_size
@@ -553,18 +487,19 @@ def grid_simulate(
         dist_trajs, rate_trajs, shift_deg, T,
         n_traj, rate_scale, speed_cm, dur_s)
 
-    # for idx, poiss_seed in enumerate(poiss_seeds):
-    grid_spikes = _spike_generator(
-                                    overall,
-                                    trajs,
-                                    dur_s,
-                                    poiss_seeds,
-                                    shuffle=shuffle,
-                                    dt_s=dt_s,
-                                    )
-    # grid_spikes[poiss_seed] = curr_grid_spikes
+    for idx, poiss_seed in enumerate(poiss_seeds):
+        curr_grid_spikes = _spike_generator(
+            overall,
+            trajs,
+            dur_s,
+            shuffle=shuffle,
+            diff_seed=diff_seed,
+            dt_s=dt_s,
+            poiss_seed=poiss_seed,
+        )
+        grid_spikes[poiss_seed] = curr_grid_spikes
 
     return grid_spikes, spacings
 
 if __name__ == '__main__':
-    test_grids, _ = grid_simulate([75], 2000, 1, np.array([150,151]), "non-shuffled")
+    test_grids, _ = grid_simulate([75], 2000, 1, np.array([150]), "non-shuffled", False)
