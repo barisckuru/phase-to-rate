@@ -8,13 +8,13 @@ Created on Thu Sep  2 14:01:55 2021
 
 
 from pydentate import net_tunedrev, neuron_tools
-from grid_model_new import grid_simulate
+from grid_model import grid_simulate
 import shelve
 import copy
 import time
 import numpy as np
 import scipy.stats as stats
-from pydentate_integrate_new import granule_simulate
+from pydentate_integrate import granule_simulate
 
 start = time.time()
 
@@ -23,31 +23,30 @@ neuron_tools.load_compiled_mechanisms(path='/home/baris/pydentate/mechs/x86_64/l
 
 
 """Parameters"""
-grid_seeds = [1,2]
+grid_seeds = [3]
 
-# trajectories = [75]  # In cm
-# trajectories = [74.5]
-# trajectories = [74]
-# trajectories = [73.5]
-# trajectories = [73]
-# trajectories = [72.5]
-# trajectories = [72]
-# trajectories = [71]
-# trajectories = [70]
-# trajectories = [69]
-# trajectories = [68]
-# trajectories = [67]
-# trajectories = [66]
-# trajectories = [65]
-trajectories = [60]
+# trajectories, p = [75], 100  # In cm
+# trajectories, p = [74.5], 200
+# trajectories, p = [74], 300
+# trajectories, p = [73.5], 400
+# trajectories, p = [73], 500
+# trajectories, p = [72.5], 600
+# trajectories, p = [72], 700
+# trajectories, p = [71], 800
+# trajectories, p = [70], 900
+# trajectories, p = [69], 1000
+# trajectories, p = [68], 1100
+# trajectories, p = [67], 1200
+# trajectories, p = [66], 1300
+# trajectories, p = [65], 1400
+trajectories, p = [60], 1500
 
-p = 100*trajectories[0]-5000
 poisson_seeds = np.arange(p,p+20,1)
 poisson_seeds = list(poisson_seeds)
 
 
-# shuffling = "non-shuffled"
-shuffling = "shuffled"
+shuffling = "non-shuffled"
+# shuffling = "shuffled"
 # poisson_reseeding = True  # Controls seeding between trajectories
 speed_cm = 20
 dur_ms = 2000
