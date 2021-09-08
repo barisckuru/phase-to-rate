@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul  8 14:47:21 2021
+Created on Mon Sep  6 13:52:52 2021
 
-@author: bariskuru
+@author: baris
 """
 
 
 import numpy as np
 import copy
-
+import shelve
 
 
 def _spike_counter(spike_times, bin_size_ms=100, dur_ms=2000):
@@ -18,67 +18,31 @@ def _spike_counter(spike_times, bin_size_ms=100, dur_ms=2000):
     counts = np.zeros((n_cells, n_bins))
     for i in range(n_bins):
         for idx, value in enumerate(spike_times):
-            curr_ct = ((bin_size_ms*(i) < value) & (value < bin_size_ms*(i+1))).sum()
+            curr_ct = ((bin_size_ms*(i) < value) &
+                       (value < bin_size_ms*(i+1))).sum()
             counts[idx, i] = curr_ct
     return counts
 
 
-
-def _phase_definer(spike_times, nan_fill=True, bin_size_ms=100, dur_ms=2000):
+def _phase_definer(spike_times, nan_fill=False, bin_size_ms=100, dur_ms=2000):
     n_bins = int(dur_ms/bin_size_ms)
     n_cells = len(spike_times)
     phases = np.zeros((n_cells, n_bins))
     for i in range(n_bins):
         for idx, val in enumerate(spike_times):
-            curr_train = val[((bin_size_ms*(i) < val) & (val < bin_size_ms*(i+1)))]
+            curr_train = val[((bin_size_ms*(i) < val) &
+                              (val < bin_size_ms*(i+1)))]
             if curr_train.size != 0:
-                phases[idx, i] = np.mean(curr_train%(bin_size_ms)/(bin_size_ms)*2*np.pi)
+                phases[idx, i] = np.mean(curr_train % (bin_size_ms) /
+                                         (bin_size_ms)*2*np.pi)
     if nan_fill is True:
         mean_phases = np.mean(phases[phases != 0])
         phases[phases == 0] = mean_phases
     return phases
-    
 
 
-# def rate_n_phase(spike_times, poiss_seeds, trajs, nan_fill=False, bin_size_ms=100, dur_ms=2000):
-#     n_bins = int(dur_ms/bin_size_ms)
-#     n_traj = len(trajs)
-#     n_poiss = len(poiss_seeds)
-#     n_cell = len(spike_times[poiss_seeds[0]][0])
-#     counts = np.empty((n_cell, n_bins, n_traj, n_poiss))
-#     phases = np.empty((n_cell, n_bins, n_traj, n_poiss))
-#     rate_code = np.empty((2*n_cell*n_bins, n_traj, n_poiss))
-#     phase_code = np.empty((2*n_cell*n_bins, n_traj, n_poiss))
-#     polar_code = np.empty((2*n_cell*n_bins, n_traj, n_poiss))
-#     for seed_idx, seed in enumerate(poiss_seeds):
-#         spike_times_single_seed = spike_times[seed]
-#         for traj_idx in range(n_traj):
-#             spike_times_single_traj = spike_times_single_seed[traj_idx]
-#             single_count = _spike_counter(spike_times_single_traj, bin_size_ms=bin_size_ms, dur_ms=dur_ms)
-#             single_phase = _phase_definer(spike_times_single_traj, bin_size_ms=bin_size_ms, dur_ms=dur_ms)
-#             counts[:, :, traj_idx, seed_idx] = single_count
-#             phases[:, :, traj_idx, seed_idx] = single_phase
-#             single_rate_code, single_phase_code, single_polar_code = code_maker(single_count, single_phase, n_cell, n_bins)
-#             rate_code[:, traj_idx, seed_idx] = single_rate_code
-#             phase_code[:, traj_idx, seed_idx] = single_phase_code
-#             polar_code[:, traj_idx, seed_idx] = single_polar_code
-#     return counts, phases, rate_code, phase_code, polar_code
-
-def rate_n_phase(spike_times, poiss_seeds, trajs, nan_fill=False, bin_size_ms=100, dur_ms=2000):
-    n_bins = int(dur_ms/bin_size_ms)
-    n_poiss = len(poiss_seeds)
-    print(type(spike_times))
-    n_cell = len(spike_times)
-
-    spike_times_single_traj = spike_times
-    single_count = _spike_counter(spike_times_single_traj, bin_size_ms=bin_size_ms, dur_ms=dur_ms)
-    single_phase = _phase_definer(spike_times_single_traj, bin_size_ms=bin_size_ms, dur_ms=dur_ms)
-    single_rate_code, single_phase_code, single_polar_code = code_maker(single_count, single_phase, n_cell, n_bins)
-
-    return single_count, single_phase, single_rate_code, single_phase_code, single_polar_code
-
-
-def code_maker(single_count, single_phase, phase_of_rate_code=np.pi/4, rate_in_phase=1):
+def _code_maker(single_count, single_phase,
+                phase_of_rate_code=np.pi/4, rate_in_phase=1):
     single_count = single_count.flatten('C')
     single_phase = single_phase.flatten('C')
 
@@ -105,253 +69,59 @@ def code_maker(single_count, single_phase, phase_of_rate_code=np.pi/4, rate_in_p
     return rate_code, phase_code, polar_code
 
 
-
-
-poiss_seeds = np.array([100, 201, 302])
-
-trajs = [75, 74, 65]
-
-
-poisson_seeds = np.array([100])
-
-
-
-# test_grids = storage['grid_spikes']["non-shuffled"]
-
-# test_gras = storage['granule_spikes']["shuffled"]
-
-
-test_gras_75 = storage['75']['grid_spikes'][100]
-counts_75, phases_75, rate_code_75, phase_code_75, polar_code_75 = rate_n_phase(test_gras_75, [100], [75], dur_ms=dur_ms)
-
-test_gras_75_2 = storage['75']['grid_spikes'][101]
-counts_75_2, phases_75_2, rate_code_75_2, phase_code_75_2, polar_code_75_2 = rate_n_phase(test_gras_75_2, [100], [75], dur_ms=dur_ms)
-
-
-
-seed =  storage['74']['parameters']['poisson_seeds'][0]
-test_gras_74 = storage['74']['grid_spikes'][seed]
-counts_74, phases_74, rate_code_74, phase_code_74, polar_code_74 = rate_n_phase(test_gras_74, [100], [74], dur_ms=dur_ms)
-
-
-seed_2 =  storage['74']['parameters']['poisson_seeds'][1]
-test_gras_74_2 = storage['74']['grid_spikes'][seed]
-counts_74_2, phases_74_2, rate_code_74_2, phase_code_74_2, polar_code_74_2 = rate_n_phase(test_gras_74_2, [100], [74], dur_ms=dur_ms)
-
-
-
-test_gras1 = granule_spikes[75][101]
-trajs1 =  [75]
-poisson_seed1 = [101]
-counts1, phases1, rate_code1, phase_code1, polar_code1 = rate_n_phase(test_gras1, poisson_seed1, trajs1, dur_ms=dur_ms)
-
-
-from scipy.stats import pearsonr,  spearmanr
-pearson = pearsonr(counts_75[:,0], counts_74[:,0])
-pearson1 = pearsonr(rate_code_75, rate_code_74)
-pearson2 = pearsonr(phase_code_75, phase_code_74)
-pearson3 = pearsonr(polar_code_75, polar_code_74)
-
-
-pearson = pearsonr(counts_75[:,0], counts_75_2[:,0])
-pearson1 = pearsonr(rate_code_75, rate_code_75_2)
-pearson2 = pearsonr(phase_code_75, phase_code_75_2)
-pearson3 = pearsonr(polar_code_75, polar_code_75_2)
-
-
-
-
-
-
-
-
-
-# counts1, phases1, rate_code1, phase_code1, polar_code1 = rate_n_phase(test_grids, poiss_seeds, trajs, nan_fill=False)
-
-
-for i in range(2000):
-    # print(np.array([nw.populations[0].ap_counters[i+200][0].as_numpy()], dtype=object))
-    if len(nw.populations[0].ap_counters[i][0].as_numpy()) != 0:
-        print(i)
-        print(nw.populations[0].ap_counters[i][0].as_numpy())
-    
-np.array(nw.populations[0].ap_counters[1151][0])
-
-# .as_numpy()
-    # np.array([cell[0].as_numpy() for cell in nw.populations[0].ap_counters], dtype=object)
-
-
-
-from scipy.stats import pearsonr,  spearmanr
-
-
-pearson = pearsonr(counts[:,0], counts1[:,0])
-
-pearson1 = pearsonr(rate_code, rate_code1)
-
-pearson2 = pearsonr(phase_code, phase_code1)
-
-pearson3 = pearsonr(polar_code, polar_code1)
-
-pearson1 = pearsonr(rate_code[:,0,0], rate_code[:,1,0])# 75 vs 74 same poiss
-pearson2 = pearsonr(rate_code[:,0,0], rate_code[:,0,1])# 75 vs 75 diff poiss
-pearson3 = pearsonr(rate_code[:,0,0], rate_code[:,1,1])# 75 vs 74 diff poiss
-pearson31 = pearsonr(rate_code[:,0,0], rate_code[:,2,0])# 75 vs 73 same poiss
-pearson32 = pearsonr(rate_code[:,0,0], rate_code[:,2,1])# 75 vs 73 diff poiss
-pearson33 = pearsonr(rate_code[:,0,0], rate_code[:,3,0])# 75 vs 70 same poiss
-pearson34 = pearsonr(rate_code[:,0,0], rate_code[:,3,1])# 75 vs 70 diff poiss
-
-pearson10 = pearsonr(rate_code[:,1,0], rate_code[:,2,0])# 74 vs 73 same poiss
-pearson20 = pearsonr(rate_code[:,1,0], rate_code[:,1,1])# 74 vs 74 diff poiss
-pearson30 = pearsonr(rate_code[:,1,0], rate_code[:,2,1])# 74 vs 73 diff poiss
-pearson310 = pearsonr(rate_code[:,1,0], rate_code[:,3,0])# 74 vs 70 same poiss
-pearson320 = pearsonr(rate_code[:,1,0], rate_code[:,3,1])# 74 vs 70 diff poiss
-
-print(pearson1)
-print(pearson2)
-print(pearson3)
-print(pearson31)
-print(pearson32)
-print(pearson33)
-print(pearson34)
-print('                ')
-print(pearson10)
-print(pearson20)
-print(pearson30)
-print(pearson310)
-print(pearson320)
-
-
-
-
-
-spearman1 = spearmanr(rate_code[:,0,0], rate_code[:,1,0])# 75 vs 74 same poiss
-spearman2 = spearmanr(rate_code[:,0,0], rate_code[:,0,1])# 75 vs 75 diff poiss
-spearman3 = spearmanr(rate_code[:,0,0], rate_code[:,1,1])# 75 vs 74 diff poiss
-spearman31 = spearmanr(rate_code[:,0,0], rate_code[:,2,0])# 75 vs 73 same poiss
-spearman32 = spearmanr(rate_code[:,0,0], rate_code[:,2,1])# 75 vs 73 diff poiss
-spearman33 = spearmanr(rate_code[:,0,0], rate_code[:,3,0])# 75 vs 70 same poiss
-spearman34 = spearmanr(rate_code[:,0,0], rate_code[:,3,1])# 75 vs 70 diff poiss
-
-spearman10 = spearmanr(rate_code[:,1,0], rate_code[:,2,0])# 74 vs 73 same poiss
-spearman20 = spearmanr(rate_code[:,1,0], rate_code[:,1,1])# 74 vs 74 diff poiss
-spearman30 = spearmanr(rate_code[:,1,0], rate_code[:,2,1])# 74 vs 73 diff poiss
-spearman310 = spearmanr(rate_code[:,1,0], rate_code[:,3,0])# 74 vs 70 same poiss
-spearman320 = spearmanr(rate_code[:,1,0], rate_code[:,3,1])# 74 vs 70 diff poiss
-
-print(spearman1)
-print(spearman2)
-print(spearman3)
-print(spearman31)
-print(spearman32)
-print(spearman33)
-print(spearman34)
-print('                ')
-print(spearman10)
-print(spearman20)
-print(spearman30)
-print(spearman310)
-print(spearman320)
-
-
-
-
-
-
-pearson1 = pearsonr(phase_code[:,0,0], phase_code[:,1,0])# 75 vs 74 same poiss
-pearson2 = pearsonr(phase_code[:,0,0], phase_code[:,0,1])# 75 vs 75 diff poiss
-pearson3 = pearsonr(phase_code[:,0,0], phase_code[:,1,1])# 75 vs 74 diff poiss
-pearson31 = pearsonr(phase_code[:,0,0], phase_code[:,2,0])# 75 vs 73 same poiss
-pearson32 = pearsonr(phase_code[:,0,0], phase_code[:,2,1])# 75 vs 73 diff poiss
-pearson33 = pearsonr(phase_code[:,0,0], phase_code[:,3,0])# 75 vs 70 same poiss
-pearson34 = pearsonr(phase_code[:,0,0], phase_code[:,3,1])# 75 vs 70 diff poiss
-
-pearson10 = pearsonr(phase_code[:,1,0], phase_code[:,2,0])# 74 vs 73 same poiss
-pearson20 = pearsonr(phase_code[:,1,0], phase_code[:,1,1])# 74 vs 74 diff poiss
-pearson30 = pearsonr(phase_code[:,1,0], phase_code[:,2,1])# 74 vs 73 diff poiss
-pearson310 = pearsonr(phase_code[:,1,0], phase_code[:,3,0])# 74 vs 70 same poiss
-pearson320 = pearsonr(phase_code[:,1,0], phase_code[:,3,1])# 74 vs 70 diff poiss
-
-print(pearson1)
-print(pearson2)
-print(pearson3)
-print(pearson31)
-print(pearson32)
-print(pearson33)
-print(pearson34)
-print('                ')
-print(pearson10)
-print(pearson20)
-print(pearson30)
-print(pearson310)
-print(pearson320)
-
-
-
-pearson1 = pearsonr(polar_code[:,0,0], polar_code[:,1,0]) # 75 vs 74 same poiss
-pearson2 = pearsonr(polar_code[:,0,0], polar_code[:,0,1]) # 75 vs 75 diff poiss
-pearson3 = pearsonr(polar_code[:,0,0], polar_code[:,1,2]) # 75 vs 74 diff poiss
-pearson31 = pearsonr(polar_code[:,0,0], polar_code[:,2,0]) # 75 vs 65 same poiss
-pearson32 = pearsonr(polar_code[:,0,0], polar_code[:,2,1]) # 75 vs 65 diff poiss
-
-print(pearson1)
-print(pearson2)
-print(pearson3)
-print(pearson31)
-print(pearson32)
-
-
-
-pearson1 = pearsonr(phase_code[:,0,0], phase_code[:,1,0])
-pearson2 = pearsonr(phase_code[:,0,0], phase_code[:,0,1])
-pearson3 = pearsonr(phase_code[:,0,0], phase_code[:,1,1])
-pearson31 = pearsonr(phase_code[:,0,0], phase_code[:,2,0])
-pearson32 = pearsonr(phase_code[:,0,0], phase_code[:,2,1])
-
-pearson4 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,0,1].flatten())
-pearson5 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,1,0].flatten())
-pearson6 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,1,1].flatten())
-
-
-pearson4 = pearsonr(counts[:,10,0,0].flatten(), counts[:,10,0,1].flatten())
-pearson5 = pearsonr(counts[:,10,0,0].flatten(), counts[:,10,1,0].flatten())
-pearson6 = pearsonr(counts[:,10,0,0].flatten(), counts[:,10,1,1].flatten())
-
-
-
-pearson4 = pearsonr(counts[:,12,0,0].flatten(), counts[:,12,0,1].flatten())
-pearson5 = pearsonr(counts[:,12,0,0].flatten(), counts[:,12,1,0].flatten())
-pearson6 = pearsonr(counts[:,12,0,0].flatten(), counts[:,12,1,1].flatten())
-
-
-pearson4 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,0,2])
-pearson5 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,3,0])
-pearson6 = pearsonr(counts[:,5,0,0].flatten(), counts[:,5,3,2])
-
-
-
-pearson4 = spearmanr(counts[:,5,0,0], counts[:,5,0,2])
-pearson5 = spearmanr(counts[:,5,0,0], counts[:,5,3,0])
-pearson6 = spearmanr(counts[:,5,0,0], counts[:,5,3,2])
-
-
-
-pearson4 = spearmanr(counts[:,:,0,0].flatten(), counts[:,:,0,1].flatten())
-pearson5 = spearmanr(counts[:,:,0,0].flatten(), counts[:,:,1,0].flatten())
-pearson6 = spearmanr(counts[:,:,0,0].flatten(), counts[:,:,1,1].flatten())
-
-pearson4 = spearmanr(counts[:,:,0,1].flatten(), counts[:,:,1,1].flatten())
-pearson5 = spearmanr(counts[:,:,0,1].flatten(), counts[:,:,0,2].flatten())
-pearson6 = spearmanr(counts[:,:,0,1].flatten(), counts[:,:,1,2].flatten())
-
-# code maker is fine but different poisson seeds doesnt really funtion
-# they are different but correlation values look weird
-# maybe counter has a problem
-
-import matplotlib.pyplot as plt
-
-plt.imshow(counts[:,:,0,0], aspect='auto')
-plt.figure()
-plt.imshow(counts[:,:,0,1], aspect='auto')
-plt.figure()
-plt.imshow(counts[:,:,1,1], aspect='auto')
+def rate_n_phase(spike_times, trajectories, n_samples, bin_size_ms=100, dur_ms=2000):
+    n_bins = int(dur_ms/bin_size_ms)
+    n_traj = len(trajectories)
+    n_cell = len(spike_times[trajectories[0]][0])
+    counts = np.empty((n_cell, n_bins, n_samples, n_traj))
+    phases = np.empty((n_cell, n_bins, n_samples, n_traj))
+    rate_code = np.empty((2*n_cell*n_bins, n_samples, n_traj))
+    phase_code = np.empty((2*n_cell*n_bins, n_samples, n_traj))
+    polar_code = np.empty((2*n_cell*n_bins, n_samples, n_traj))
+
+    for traj_idx, traj in enumerate(trajectories):
+        spike_times_traj = spike_times[traj]
+        for sample_idx in range(n_samples):
+            spike_times_sample = spike_times_traj[sample_idx]
+            single_count = _spike_counter(spike_times_sample,
+                                          bin_size_ms=bin_size_ms,
+                                          dur_ms=dur_ms)
+            single_phase = _phase_definer(spike_times_sample,
+                                          bin_size_ms=bin_size_ms,
+                                          dur_ms=dur_ms)
+            counts[:, :, sample_idx, traj_idx] = single_count
+            phases[:, :, sample_idx, traj_idx] = single_phase
+            s_rate_code, s_phase_code, s_polar_code = _code_maker(single_count,
+                                                                  single_phase,
+                                                                  n_cell,
+                                                                  n_bins)
+            rate_code[:, sample_idx, traj_idx] = s_rate_code
+            phase_code[:, sample_idx, traj_idx] = s_phase_code
+            polar_code[:, sample_idx, traj_idx] = s_polar_code
+    return counts, phases, rate_code, phase_code, polar_code
+
+
+def load_spikes(path, cell_type, trajectories, n_samples):
+    storage = shelve.open(path)
+    spikes = {}
+    for traj in trajectories:
+        requested_spikes = []
+        traj_key = str(traj)
+        poisson_seeds = storage[traj_key]['parameters']['poisson_seeds']
+        if n_samples > len(poisson_seeds):
+            raise Exception('Too much samples requested!')
+        elif n_samples < 1:
+            raise Exception('n_samples should be larger than 0!')
+        else:
+            poisson_seeds = poisson_seeds[0:n_samples]
+
+        if cell_type == 'grid':
+            all_spikes = storage[traj_key]['grid_spikes']
+        elif cell_type == 'granule':
+            all_spikes = storage[traj_key]['granule_spikes']
+        else:
+            raise Exception('Cell type does not exist!')
+        for poisson in poisson_seeds:
+            requested_spikes.append(all_spikes[poisson])
+        spikes[traj] = requested_spikes
+    return spikes

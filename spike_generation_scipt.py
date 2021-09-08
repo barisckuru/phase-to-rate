@@ -23,7 +23,7 @@ neuron_tools.load_compiled_mechanisms(path='/home/baris/pydentate/mechs/x86_64/l
 
 
 """Parameters"""
-grid_seeds = [3]
+grid_seeds = [4,5]
 
 # trajectories, p = [75], 100  # In cm
 # trajectories, p = [74.5], 200
@@ -45,8 +45,8 @@ poisson_seeds = np.arange(p,p+20,1)
 poisson_seeds = list(poisson_seeds)
 
 
-shuffling = "non-shuffled"
-# shuffling = "shuffled"
+# shuffling = "non-shuffled"
+shuffling = "shuffled"
 # poisson_reseeding = True  # Controls seeding between trajectories
 speed_cm = 20
 dur_ms = 2000
@@ -100,20 +100,21 @@ for grid_seed in grid_seeds:
     storage['grid_spikes'] = copy.deepcopy(grid_spikes)
     storage['granule_spikes'] = copy.deepcopy(granule_spikes)
     storage['parameters'] = parameters
+    
+    
+    # collective storage
+    output_name = f'{grid_seed}_{dur_ms}'
+    storage_path = '/home/baris/results/grid-seed_duration_shuffling_tuning_'
+    storage_name =  storage_path +  output_name + '_' + shuffling + '_' + network_type
+    collective_storage = shelve.open(storage_name, writeback=True)
+    traj_key = str(traj)
+    collective_storage[traj_key] = {}
+    collective_storage[traj_key]['grid_spikes'] = copy.deepcopy(grid_spikes[traj])
+    collective_storage[traj_key]['granule_spikes'] = copy.deepcopy(granule_spikes[traj])
+    collective_storage[traj_key]['parameters'] = parameters
+
 
 storage.close()
-
-
-output_name = f'{grid_seed}_{dur_ms}'
-storage_path = '/home/baris/results/grid-seed_duration_shuffling_tuning_'
-storage_name =  storage_path +  output_name + '_' + shuffling + '_' + network_type
-collective_storage = shelve.open(storage_name, writeback=True)
-traj_key = str(traj)
-collective_storage[traj_key] = {}
-collective_storage[traj_key]['grid_spikes'] = copy.deepcopy(grid_spikes[traj])
-collective_storage[traj_key]['granule_spikes'] = copy.deepcopy(granule_spikes[traj])
-collective_storage[traj_key]['parameters'] = parameters
-
 collective_storage.close()
 
 # "grid_seed_poisson_seed_reseeding-True"
