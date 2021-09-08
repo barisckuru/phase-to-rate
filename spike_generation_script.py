@@ -77,7 +77,7 @@ for grid_seed in grid_seeds:
         f"{grid_seed}_{trajectories}_{poisson_seeds[0]}-{poisson_seeds[-1]}_{dur_ms}"
     )
 
-    storage = shelve.open("""/home/baris/results/grid-seed_trajectory_poisson-
+    storage = shelve.open("""/home/baris/results/trajectories_seperate/grid-seed_trajectory_poisson-
                           seeds_duration_shuffling_tuning_"""
                               + output_path
                               + "_"
