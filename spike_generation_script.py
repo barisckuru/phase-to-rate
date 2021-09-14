@@ -14,6 +14,7 @@ import copy
 import time
 import numpy as np
 from pydentate_integrate import granule_simulate
+import os
 
 start = time.time()
 
@@ -24,7 +25,7 @@ neuron_tools.load_compiled_mechanisms(
 
 
 """Parameters"""
-grid_seeds = [4, 5]
+grid_seeds = [6, 7, 8, 9, 10]
 
 # trajectories, p = [75], 100  # In cm
 # trajectories, p = [74.5], 200
@@ -73,12 +74,19 @@ print("grid", grid_seeds,
 
 
 for grid_seed in grid_seeds:
+    
+    
+    # TODO create a folder for each seed
+    save_dir = '/home/baris/results/trajectories_seperate/seed_'+str(grid_seed)
+    if not os.path.isdir(save_dir):
+        os.mkdir(save_dir)
     output_path = (
         f"{grid_seed}_{trajectories}_{poisson_seeds[0]}-{poisson_seeds[-1]}_{dur_ms}"
     )
 
-    storage = shelve.open("""/home/baris/results/trajectories_seperate/grid-seed_trajectory_poisson-
-                          seeds_duration_shuffling_tuning_"""
+    storage = shelve.open(save_dir +
+                          """grid-seed_trajectory_poisson-seeds_
+                          duration_shuffling_tuning_"""
                               + output_path
                               + "_"
                               + shuffling
@@ -103,9 +111,7 @@ for grid_seed in grid_seeds:
             granule_spikes[traj][poisson_seed] = {}
             granule_spikes_poiss = granule_simulate(
                 grid_spikes[traj][poisson_seed],
-                trajectory=traj,
                 dur_ms=dur_ms,
-                poisson_seed=poisson_seed,
                 network_type=network_type,
                 grid_seed=grid_seed,
                 pp_weight=pp_weight,
@@ -115,24 +121,25 @@ for grid_seed in grid_seeds:
     storage["grid_spikes"] = copy.deepcopy(grid_spikes)
     storage["granule_spikes"] = copy.deepcopy(granule_spikes)
     storage["parameters"] = parameters
+    print('seed ' + str(grid_seed) +' completed')
 
     # collective storage
-    output_name = f"{grid_seed}_{dur_ms}"
-    storage_path = "/home/baris/results/grid-seed_duration_shuffling_tuning_"
-    storage_name = (storage_path + output_name + "_"
-                    + shuffling + "_" + network_type)
-    collective_storage = shelve.open(storage_name, writeback=True)
-    traj_key = str(traj)
-    collective_storage[traj_key] = {}
-    collective_storage[traj_key]["grid_spikes"] = copy.deepcopy(
-        grid_spikes[traj])
-    collective_storage[traj_key]["granule_spikes"] = copy.deepcopy(
-        granule_spikes[traj])
-    collective_storage[traj_key]["parameters"] = parameters
+    # output_name = f"{grid_seed}_{dur_ms}"
+    # storage_path = "/home/baris/results/grid-seed_duration_shuffling_tuning_"
+    # storage_name = (storage_path + output_name + "_"
+    #                 + shuffling + "_" + network_type)
+    # collective_storage = shelve.open(storage_name, writeback=True)
+    # traj_key = str(traj)
+    # collective_storage[traj_key] = {}
+    # collective_storage[traj_key]["grid_spikes"] = copy.deepcopy(
+    #     grid_spikes[traj])
+    # collective_storage[traj_key]["granule_spikes"] = copy.deepcopy(
+    #     granule_spikes[traj])
+    # collective_storage[traj_key]["parameters"] = parameters
 
 
 storage.close()
-collective_storage.close()
+# collective_storage.close()
 
 
 stop = time.time()

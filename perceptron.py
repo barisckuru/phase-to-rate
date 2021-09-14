@@ -69,6 +69,7 @@ def _train_net(net, train_data, labels, n_iter=1000, lr=1e-4):
 
 def run_perceptron(neural_code, grid_seed, lr=1e-4, n_iter=10000, th=0.2):
 
+    neural_code = np.transpose(neural_code, (1, 0))
     n_sample, inp_len = neural_code.shape
     n_poiss = int(n_sample/2)
     perc_seed = grid_seed+100

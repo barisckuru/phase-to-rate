@@ -10,6 +10,7 @@ Created on Mon Sep  6 13:52:52 2021
 import numpy as np
 import copy
 import shelve
+import os, glob
 
 
 def _spike_counter(spike_times, bin_size_ms=100, dur_ms=2000):
@@ -45,7 +46,7 @@ def _phase_definer(spike_times, nan_fill=False, bin_size_ms=100, dur_ms=2000):
 
 
 def _code_maker(
-    single_count, single_phase, phase_of_rate_code=np.pi / 4, rate_in_phase=1
+    single_count, single_phase, phase_of_rate_code=np.pi / 4, rate_in_phase=3
 ):
     single_count = single_count.flatten("C")
     single_phase = single_phase.flatten("C")
@@ -133,7 +134,7 @@ def rate_n_phase(spike_times, trajectories,
             counts[:, :, sample_idx, traj_idx] = single_count
             phases[:, :, sample_idx, traj_idx] = single_phase
             s_rate_code, s_phase_code, s_polar_code = _code_maker(
-                single_count, single_phase, n_cell, n_bins
+                single_count, single_phase
             )
             rate_code[:, sample_idx, traj_idx] = s_rate_code
             phase_code[:, sample_idx, traj_idx] = s_phase_code
@@ -168,6 +169,14 @@ def load_spikes(path, cell_type, trajectories, n_samples):
         returns loaded spikes from different trajectories.
 
     """
+
+    if not os.path.exists(path):
+        split = path.split('_')
+        grid_seed = int(split[4])
+        shuffling = split[6]
+        dur_ms = split[5]
+        collect_spikes(grid_seed, shuffling, dur_ms)
+
     storage = shelve.open(path)
     spikes = {}
     for traj in trajectories:
@@ -190,4 +199,46 @@ def load_spikes(path, cell_type, trajectories, n_samples):
         for poisson in poisson_seeds:
             requested_spikes.append(all_spikes[poisson])
         spikes[traj] = requested_spikes
+    storage.close()
     return spikes
+
+
+
+def collect_spikes(grid_seed, shuffling, dur_ms,
+                   path='/home/baris/results/trajectories_seperate/'):
+    path = path + 'seed_'+str(grid_seed)+'/'
+    npzfiles = []
+    ct=0
+    if shuffling == 'shuffled':
+        for file in sorted(glob.glob(os.path.join(path,('*_shuffled*.dat'))), reverse=True):
+            npzfiles.append(file[0:-4])
+    elif shuffling == 'non-shuffled':
+        for file in sorted(glob.glob(os.path.join(path,('*non-shuffled*.dat'))), reverse=True):
+            npzfiles.append(file[0:-4])
+    else:
+        raise Exception('Shuffling is not defined')
+    for file in npzfiles:
+        file_split = file.split('_')
+        traj_key = file_split[9][1:-1]
+        if '.5' in traj_key:
+            traj = float(traj_key)
+        else:
+            traj = int(traj_key)
+        network_type = file_split[13]
+        dur_ms = int(file_split[11])
+        storage_old = shelve.open(file)
+        output_name = f'{grid_seed}_{dur_ms}'
+        storage_path = '/home/baris/results/collective/grid-seed_duration_shuffling_tuning_'
+        storage_name =  storage_path +  output_name + '_' + shuffling + '_' + network_type
+        storage = shelve.open(storage_name, writeback=True)
+        storage[traj_key] = {}
+        storage[traj_key]['grid_spikes'] = copy.deepcopy(storage_old['grid_spikes'][traj])
+        storage[traj_key]['granule_spikes'] = copy.deepcopy(storage_old['granule_spikes'][traj])
+        storage[traj_key]['parameters'] = copy.deepcopy(storage_old['parameters'])
+        storage.close()
+        storage_old.close()
+
+# collect_spikes(3, 'shuffled', 2000)
+
+# name = '/home/baris/results/seed_5/grid-seed_trajectory_poisson-seeds_duration_shuffling_tuning_5_[74]_300-319_2000_shuffled_tuned'
+# name.split('_')

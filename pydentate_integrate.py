@@ -98,7 +98,7 @@ def granule_simulate(
 
     nw = net_tunedrev.TunedNetwork(
         None,
-        np.array(grid_spikes),
+        np.array(grid_spikes, dtype=object),
         np.array(PP_to_GCs),
         np.array(PP_to_BCs),
         pp_weight=pp_weight,
