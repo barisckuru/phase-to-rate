@@ -67,31 +67,30 @@ parameters = {
     "poisson_seeds": poisson_seeds,
 }
 
-print("grid", grid_seeds,
-      "poiss", poisson_seeds,
-      "traj", trajectories,
-      "dur", dur_ms)
+print("grid", grid_seeds, "poiss", poisson_seeds,
+      "traj", trajectories, "dur", dur_ms)
 
 
 for grid_seed in grid_seeds:
-    
-    
-    # TODO create a folder for each seed
-    save_dir = '/home/baris/results/trajectories_seperate/seed_'+str(grid_seed)
+    save_dir = ("/home/baris/results/trajectories_seperate/seed_"
+                + str(grid_seed))
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
     output_path = (
         f"{grid_seed}_{trajectories}_{poisson_seeds[0]}-{poisson_seeds[-1]}_{dur_ms}"
     )
 
-    storage = shelve.open(save_dir +
-                          """grid-seed_trajectory_poisson-seeds_
+    storage = shelve.open(
+        save_dir
+        + """grid-seed_trajectory_poisson-seeds_
                           duration_shuffling_tuning_"""
-                              + output_path
-                              + "_"
-                              + shuffling
-                              + "_"
-                              + network_type, writeback=True)
+        + output_path
+        + "_"
+        + shuffling
+        + "_"
+        + network_type,
+        writeback=True,
+    )
 
     grid_spikes, _ = grid_simulate(
         trajs=trajectories,
@@ -121,7 +120,7 @@ for grid_seed in grid_seeds:
     storage["grid_spikes"] = copy.deepcopy(grid_spikes)
     storage["granule_spikes"] = copy.deepcopy(granule_spikes)
     storage["parameters"] = parameters
-    print('seed ' + str(grid_seed) +' completed')
+    print("seed " + str(grid_seed) + " completed")
 
     # collective storage
     # output_name = f"{grid_seed}_{dur_ms}"

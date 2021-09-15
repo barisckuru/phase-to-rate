@@ -10,7 +10,8 @@ Created on Mon Sep  6 13:52:52 2021
 import numpy as np
 import copy
 import shelve
-import os, glob
+import os
+import glob
 
 
 def _spike_counter(spike_times, bin_size_ms=100, dur_ms=2000):
@@ -74,8 +75,11 @@ def _code_maker(
     return rate_code, phase_code, polar_code
 
 
-def rate_n_phase(spike_times, trajectories,
-                 n_samples, bin_size_ms=100, dur_ms=2000):
+def rate_n_phase(spike_times,
+                 trajectories,
+                 n_samples,
+                 bin_size_ms=100,
+                 dur_ms=2000):
     """
 
     Generate spike counts and phases as well as different coding schemes.
@@ -169,15 +173,14 @@ def load_spikes(path, cell_type, trajectories, n_samples):
         returns loaded spikes from different trajectories.
 
     """
-
     if not os.path.exists(path):
-        split = path.split('_')
+        split = path.split("_")
         grid_seed = int(split[4])
         shuffling = split[6]
         dur_ms = split[5]
-        collect_spikes(grid_seed, shuffling, dur_ms)
+        _collect_spikes(grid_seed, shuffling, dur_ms)
 
-    storage = shelve.open(path)
+    storage = shelve.open(path[:-4])
     spikes = {}
     for traj in trajectories:
         requested_spikes = []
@@ -203,42 +206,55 @@ def load_spikes(path, cell_type, trajectories, n_samples):
     return spikes
 
 
-
-def collect_spikes(grid_seed, shuffling, dur_ms,
-                   path='/home/baris/results/trajectories_seperate/'):
-    path = path + 'seed_'+str(grid_seed)+'/'
+def _collect_spikes(
+    grid_seed,
+    shuffling,
+    dur_ms,
+    path="/home/baris/results/trajectories_seperate/"
+):
+    path = path + "seed_" + str(grid_seed) + "/"
+    print(path)
     npzfiles = []
-    ct=0
-    if shuffling == 'shuffled':
-        for file in sorted(glob.glob(os.path.join(path,('*_shuffled*.dat'))), reverse=True):
+    if shuffling == "shuffled":
+        for file in sorted(
+            glob.glob(os.path.join(path, ("*_shuffled*.dat"))), reverse=True
+        ):
             npzfiles.append(file[0:-4])
-    elif shuffling == 'non-shuffled':
-        for file in sorted(glob.glob(os.path.join(path,('*non-shuffled*.dat'))), reverse=True):
+    elif shuffling == "non-shuffled":
+        for file in sorted(
+            glob.glob(os.path.join(path, ("*non-shuffled*.dat"))), reverse=True
+        ):
             npzfiles.append(file[0:-4])
     else:
-        raise Exception('Shuffling is not defined')
+        raise Exception("Shuffling is not defined")
     for file in npzfiles:
-        file_split = file.split('_')
+        file_split = file.split("_")
         traj_key = file_split[9][1:-1]
-        if '.5' in traj_key:
+        if ".5" in traj_key:
             traj = float(traj_key)
         else:
             traj = int(traj_key)
         network_type = file_split[13]
         dur_ms = int(file_split[11])
         storage_old = shelve.open(file)
-        output_name = f'{grid_seed}_{dur_ms}'
-        storage_path = '/home/baris/results/collective/grid-seed_duration_shuffling_tuning_'
-        storage_name =  storage_path +  output_name + '_' + shuffling + '_' + network_type
+        output_name = f"{grid_seed}_{dur_ms}"
+        storage_path = (
+            "/home/baris/results/collective/" +
+            "grid-seed_duration_shuffling_tuning_"
+        )
+        storage_name = (storage_path + output_name + "_" +
+                        shuffling + "_" + network_type)
         storage = shelve.open(storage_name, writeback=True)
         storage[traj_key] = {}
-        storage[traj_key]['grid_spikes'] = copy.deepcopy(storage_old['grid_spikes'][traj])
-        storage[traj_key]['granule_spikes'] = copy.deepcopy(storage_old['granule_spikes'][traj])
-        storage[traj_key]['parameters'] = copy.deepcopy(storage_old['parameters'])
+        storage[traj_key]["grid_spikes"] = copy.deepcopy(
+            storage_old["grid_spikes"][traj]
+        )
+        storage[traj_key]["granule_spikes"] = copy.deepcopy(
+            storage_old["granule_spikes"][traj]
+        )
+        storage[traj_key]["parameters"] = copy.deepcopy(
+            storage_old["parameters"])
         storage.close()
         storage_old.close()
 
 # collect_spikes(3, 'shuffled', 2000)
-
-# name = '/home/baris/results/seed_5/grid-seed_trajectory_poisson-seeds_duration_shuffling_tuning_5_[74]_300-319_2000_shuffled_tuned'
-# name.split('_')

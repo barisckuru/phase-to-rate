@@ -67,19 +67,42 @@ def _train_net(net, train_data, labels, n_iter=1000, lr=1e-4):
     return track_loss, out
 
 
-def run_perceptron(neural_code, grid_seed, lr=1e-4, n_iter=10000, th=0.2):
+def run_perceptron(neural_code, grid_seed, learning_rate=1e-4,
+                   n_iter=10000, threshold=0.2):
+    """
 
+    Generate and run the perceptron network.
+
+    Parameters
+    ----------
+    neural_code : numpy array
+        Neural code generated from a cell population.
+    grid_seed : TYPE
+        Grid cell population generation seed,
+        modified and used to seed perceptron network as well.
+    learning_rate : float
+        Learning rate in the perceptron network. The default is 1e-4.
+    n_iter : int
+        Number of epochs for perceptron learning. The default is 10000.
+    threshold : float
+        Threshold considered sufficient for learning,
+        which the loss function reaches. The default is 0.2.
+
+    Returns
+    -------
+    Threshold crossing points and loss value in each epoch.
+    """
     neural_code = np.transpose(neural_code, (1, 0))
     n_sample, inp_len = neural_code.shape
-    n_poiss = int(n_sample/2)
-    perc_seed = grid_seed+100
+    n_poiss = int(n_sample / 2)
+    perc_seed = grid_seed + 100
     labels, out_len = _label(n_poiss)
     # Convert into tensor
     neural_code = torch.FloatTensor(neural_code)
     torch.manual_seed(perc_seed)
     net_neural = _Net(inp_len, out_len)
     train_loss, _ = _train_net(net_neural, neural_code,
-                               labels, n_iter=n_iter, lr=lr)
+                               labels, n_iter=n_iter, lr=learning_rate)
     # threshold crossing points
-    th_cross = np.argmax(np.array(train_loss) < th)
+    th_cross = np.argmax(np.array(train_loss) < threshold)
     return th_cross, train_loss
