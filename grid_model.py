@@ -339,7 +339,7 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
     return overall
 
 
-'depreciated'
+# 'depreciated'
 # def _spike_generator(
 #     arr,
 #     trajs,
@@ -490,6 +490,7 @@ def grid_simulate(
     f=10,
     shift_deg=180,
     dt_s=0.002,
+    large_output=False
 ):
     """
     Simulate the activity of a population of grid cells.
@@ -520,6 +521,8 @@ def grid_simulate(
     rate_scale : int
         Scale the firing rate of grid cells
         The default is 5.
+    large_output : Boolean
+        Should be False during normal usage. Set to True to return extended results.
 
     Returns
     -------
@@ -563,8 +566,10 @@ def grid_simulate(
                                     dt_s=dt_s,
                                     )
     # grid_spikes[poiss_seed] = curr_grid_spikes
-
-    return grid_spikes, spacings
+    if large_output:
+        return grid_spikes, spacings, rate_trajs, grids, overall
+    else:
+        return grid_spikes, spacings
 
 if __name__ == '__main__':
     test_grids, _ = grid_simulate([75], 2000, 1, np.array([150,151]), "non-shuffled")
