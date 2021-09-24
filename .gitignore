@@ -131,3 +131,4 @@ dmypy.json
 # Ignore local data
 data/
 output/
+*.pkl

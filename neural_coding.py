@@ -229,13 +229,15 @@ def _collect_spikes(
         raise Exception("Shuffling is not defined")
     for file in npzfiles:
         file_split = file.split("_")
-        traj_key = file_split[9][1:-1]
+        traj_key = file_split[10][1:-1]
+        print(file_split)
+        print(traj_key)
         if ".5" in traj_key:
             traj = float(traj_key)
         else:
             traj = int(traj_key)
-        network_type = file_split[13]
-        dur_ms = int(file_split[11])
+        network_type = file_split[14]
+        dur_ms = int(file_split[12])
         storage_old = shelve.open(file)
         output_name = f"{grid_seed}_{dur_ms}"
         storage_path = (
@@ -257,4 +259,7 @@ def _collect_spikes(
         storage.close()
         storage_old.close()
 
-# collect_spikes(3, 'shuffled', 2000)
+
+# for i in np.arange(6,11,1):
+#     print(i)
+#     _collect_spikes(i, 'shuffled', 2000)
