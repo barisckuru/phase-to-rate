@@ -57,7 +57,7 @@ for grid_seed in grid_seeds:
     s_path = (
         "/home/baris/results/collective/grid-seed_duration_shuffling_tuning_"
         + str(grid_seed)
-        + "_2000_shuffled_tuned.dir"
+        + "_2000_shuffled_full.dir"
     )
     
     s_grid_spikes = load_spikes(s_path, "grid", trajectories, n_samples)
@@ -114,9 +114,9 @@ for grid_seed in all_codes:
         for cell in all_codes[grid_seed][shuffling]:
             for code in all_codes[grid_seed][shuffling][cell]:
                 for traj_idx in range(len(trajectories)-1):
-                    if code is 'phase':
+                    if code == 'phase':
                         learning_rate = phase_learning_rate
-                    elif code is 'rate':
+                    elif code == 'rate':
                         learning_rate = rate_learning_rate
                     input_code = all_codes[grid_seed][shuffling][cell][code]
                     perceptron_input = np.hstack((input_code[:, :, 0], input_code[:, :, traj_idx + 1]))
@@ -146,6 +146,12 @@ grid_rate = df.groupby(['cell_type', 'code_type']).get_group(('grid', 'rate'))
 grid_phase = df.groupby(['cell_type', 'code_type']).get_group(('grid', 'phase'))
 granule_rate = df.groupby(['cell_type', 'code_type']).get_group(('granule', 'rate'))
 granule_phase = df.groupby(['cell_type', 'code_type']).get_group(('granule', 'phase'))
+
+
+
+
+#here!
+
 
 
 import pickle 
