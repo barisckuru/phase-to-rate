@@ -47,7 +47,7 @@ def _phase_definer(spike_times, nan_fill=False, bin_size_ms=100, dur_ms=2000):
 
 
 def _code_maker(
-    single_count, single_phase, phase_of_rate_code=np.pi / 4, rate_in_phase=3
+    single_count, single_phase, phase_of_rate_code=np.pi / 4, rate_in_phase=1
 ):
     single_count = single_count.flatten("C")
     single_phase = single_phase.flatten("C")
@@ -210,43 +210,29 @@ def _collect_spikes(
     grid_seed,
     shuffling,
     dur_ms,
-    path="/home/baris/results/trajectories_seperate/"
+    trajectories,
+    network_type,
+    separate_path="/home/baris/results/trajectories_seperate/",
+    collective_path="/home/baris/results/collective/"
 ):
-    path = path + "seed_" + str(grid_seed) + "/"
-    print(path)
-    npzfiles = []
-    if shuffling == "shuffled":
-        for file in sorted(
-            glob.glob(os.path.join(path, ("*_shuffled*.dat"))), reverse=True
-        ):
-            npzfiles.append(file[0:-4])
-    elif shuffling == "non-shuffled":
-        for file in sorted(
-            glob.glob(os.path.join(path, ("*non-shuffled*.dat"))), reverse=True
-        ):
-            npzfiles.append(file[0:-4])
-    else:
-        raise Exception("Shuffling is not defined")
-    for file in npzfiles:
-        file_split = file.split("_")
-        traj_key = file_split[10][1:-1]
-        print(file_split)
-        print(traj_key)
-        if ".5" in traj_key:
-            traj = float(traj_key)
-        else:
-            traj = int(traj_key)
-        network_type = file_split[14]
-        dur_ms = int(file_split[12])
+    separate_path = separate_path + "seed_" + str(grid_seed) + "/"
+    print(separate_path)
+      
+    for traj in trajectories:
+        print(traj)
+        file = glob.glob(os.path.join(separate_path, "*%s*_%s*.dat" %(traj, shuffling)))[0][0:-4]
+        fname = f"{separate_path}*{traj}]*_{shuffling}*.dat"
+        file = glob.glob(fname)[0][0:-4]
+        print(file)
         storage_old = shelve.open(file)
         output_name = f"{grid_seed}_{dur_ms}"
-        storage_path = (
-            "/home/baris/results/collective/" +
-            "grid-seed_duration_shuffling_tuning_"
+        collective_storage = []
+        collective_storage = (collective_path + "grid-seed_duration_shuffling_tuning_"
         )
-        storage_name = (storage_path + output_name + "_" +
+        collective_storage = (collective_storage + output_name + "_" +
                         shuffling + "_" + network_type)
-        storage = shelve.open(storage_name, writeback=True)
+        storage = shelve.open(collective_storage, writeback=True)
+        traj_key = str(traj)
         storage[traj_key] = {}
         storage[traj_key]["grid_spikes"] = copy.deepcopy(
             storage_old["grid_spikes"][traj]
@@ -260,6 +246,9 @@ def _collect_spikes(
         storage_old.close()
 
 
-# for i in np.arange(6,11,1):
-#     print(i)
-#     _collect_spikes(i, 'shuffled', 2000)
+trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
+                71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
+
+for i in np.arange(1,11,1):
+    print(i)
+    _collect_spikes(i, 'non-shuffled', 2000, trajectories, 'full')

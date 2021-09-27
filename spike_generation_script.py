@@ -25,7 +25,7 @@ neuron_tools.load_compiled_mechanisms(
 
 
 """Parameters"""
-grid_seeds = [6, 7, 8, 9, 10]
+grid_seeds = [1]
 
 # trajectories, p = [75], 100  # In cm
 # trajectories, p = [74.5], 200
@@ -40,10 +40,12 @@ grid_seeds = [6, 7, 8, 9, 10]
 # trajectories, p = [68], 1100
 # trajectories, p = [67], 1200
 # trajectories, p = [66], 1300
-# trajectories, p = [65], 1400
-trajectories, p = [60], 1500
+trajectories, p = [65], 10400
+# trajectories, p = [60], 1500
+# trajectories, p = [30], 1600
+# trajectories, p = [15], 1700
 
-poisson_seeds = np.arange(p, p + 20, 1)
+poisson_seeds = np.arange(p, p + 1000, 1)
 poisson_seeds = list(poisson_seeds)
 
 
@@ -72,7 +74,7 @@ print("grid", grid_seeds, "poiss", poisson_seeds,
 
 
 for grid_seed in grid_seeds:
-    save_dir = ("/home/baris/results/trajectories_seperate/seed_"
+    save_dir = ("/home/baris/results/1000_poisson/seed_"
                 + str(grid_seed))
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)

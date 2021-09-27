@@ -417,7 +417,7 @@ def _spike_generator(
     dur_s,
     poiss_seeds,
     shuffle,
-    dt_s=0.025,
+    dt_s
 ):
     """Generate spikes from a seeded inhomogeneous Poisson function.
 
@@ -428,6 +428,9 @@ def _spike_generator(
     diff_seed : Boolean
         option to decide seeding inh poiss function
         with same or diff seeds.
+    dt_s: float
+        dt of the array to generate spikes
+        array[1] = dur_s/dt_s
 
     Returns
     -------
@@ -551,7 +554,7 @@ def grid_simulate(
     grid_dist = _rate2dist(grids, spacings)
     dist_trajs = _draw_traj(grid_dist, n_grid, trajs, dur_ms=dur_ms)
     rate_trajs = _draw_traj(grids, n_grid, trajs, dur_ms=dur_ms)
-    rate_trajs, rate_t_arr = _interp(rate_trajs, dur_s)
+    rate_trajs, rate_t_arr = _interp(rate_trajs, dur_s, new_dt_s=dt_s)
     overall = _overall(
         dist_trajs, rate_trajs, shift_deg, T,
         n_traj, rate_scale, speed_cm, dur_s)

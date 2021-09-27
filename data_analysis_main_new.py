@@ -14,11 +14,12 @@ import pandas as pd
 import seaborn as sns
 
 trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
-                71, 70, 69, 68, 67, 66, 65, 60]
+                71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 n_samples = 20
 grid_seeds = np.arange(1,11,1)
 
-learning_rate = 1e-3
+rate_learning_rate = 1e-3
+phase_learning_rate = 1e-2
 n_iter = 10000
 
 all_codes = {}
@@ -28,7 +29,7 @@ for grid_seed in grid_seeds:
     path = (
         "/home/baris/results/collective/grid-seed_duration_shuffling_tuning_"
         + str(grid_seed)
-        + "_2000_non-shuffled_tuned.dir"
+        + "_2000_non-shuffled_full.dir"
     )
     
     
@@ -113,6 +114,10 @@ for grid_seed in all_codes:
         for cell in all_codes[grid_seed][shuffling]:
             for code in all_codes[grid_seed][shuffling][cell]:
                 for traj_idx in range(len(trajectories)-1):
+                    if code is 'phase':
+                        learning_rate = phase_learning_rate
+                    elif code is 'rate':
+                        learning_rate = rate_learning_rate
                     input_code = all_codes[grid_seed][shuffling][cell][code]
                     perceptron_input = np.hstack((input_code[:, :, 0], input_code[:, :, traj_idx + 1]))
                     th_cross, train_loss = run_perceptron(
@@ -143,14 +148,25 @@ granule_rate = df.groupby(['cell_type', 'code_type']).get_group(('granule', 'rat
 granule_phase = df.groupby(['cell_type', 'code_type']).get_group(('granule', 'phase'))
 
 
+import pickle 
+file_name = "all.pkl"
+
+open_file = open(file_name, "wb")
+pickle.dump(data, open_file)
+open_file.close()
+
+import copy
+data1 = copy.deepcopy(data)
+
+
 fig1, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex="col")
 
 fig1.suptitle(
-    "Perceptron learning speed - "
+    "Perceptron learning speed \n  "
     + str(n_samples)
-    + " samples \n grid seed= "
-    + str(grid_seed)
-    + ", learning rate = "
+    + " samples per trajectory \n "
+    + str(len(grid_seeds))
+    + " grid seeds, learning rate = "
     + format(learning_rate, ".1E")
 )
 
@@ -198,133 +214,133 @@ plt.tight_layout()
 
 
 
+# # ax1.set_ylabel("Speed (1/N)")
+# # ax3.set_ylabel("Speed (1/N)")
+# # ax3.set_xlabel("distance (cm)")
+# # ax4.set_xlabel("distance (cm)")
+
+# import seaborn as sns
+
+# plt.figure()
+# sns.lineplot(
+#     data=a, x="distance", y="speed", hue="shuffling", err_style="bars", ci='sd'
+# )
+
+
+
+
+
+
+
+
+# # for traj_idx, traj in enumerate(trajectories):
+# #     traj = trajectories[traj_idx+1]
+# #     print(traj)
+# #     if traj_idx == (len(trajectories) - 2):
+# #         break
+
+
+
+
+
+
+# # def thresholds(code, trajectories, lr=1e-3, n_iter=2000):
+# #     ths = []
+# #     losses = []
+# #     for traj_idx, traj in enumerate(trajectories):
+# #         perceptron_input = np.hstack((code[:, :, 0], code[:, :, traj_idx + 1]))
+# #         th_cross, train_loss = run_perceptron(
+# #             perceptron_input,
+# #             grid_seed,
+# #             learning_rate=learning_rate,
+# #             n_iter=n_iter
+# #         )
+# #         ths.append(th_cross)
+# #         losses.append(train_loss)
+
+# #         if traj_idx == (len(trajectories) - 2):
+# #             break
+# #     return ths, losses
+
+# # trajectories + 75
+
+# # indices = list(75 - np.array(trajectories))
+
+
+
+
+# fig1, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex="col")
+
+# fig1.suptitle(
+#     "Perceptron learning speed - "
+#     + str(n_samples)
+#     + " samples \n grid seed= "
+#     + str(grid_seed)
+#     + ", rate lr = "
+#     + format(learning_rate, ".1E")
+#     + ", phase lr = "
+#     + format(learning, ".1E")
+# )
+# xticks = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 15]
+# ax1.plot(
+#     xticks, 1 / np.array(threshold["shuffled"]["grid"]["rate"]),
+#     "k-", label="shuffled"
+# )
+# ax1.plot(
+#     xticks,
+#     1 / np.array(threshold["non-shuffled"]["grid"]["rate"]),
+#     "b--",
+#     label="non-shuffled",
+# )
+# ax1.legend()
+# ax1.set_title("grid rate code")
 # ax1.set_ylabel("Speed (1/N)")
-# ax3.set_ylabel("Speed (1/N)")
+
+# ax2.plot(
+#     xticks, 1 / np.array(threshold["shuffled"]["grid"]["phase"]),
+#     "k-", label="shuffled"
+# )
+# ax2.plot(
+#     xticks,
+#     1 / np.array(threshold["non-shuffled"]["grid"]["phase"]),
+#     "b--",
+#     label="non-shuffled",
+# )
+# ax2.legend()
+# ax2.set_title("grid phase code")
+
+
+# ax3.plot(
+#     xticks,
+#     1 / np.array(threshold["shuffled"]["granule"]["rate"]),
+#     "k-",
+#     label="shuffled",
+# )
+# ax3.plot(
+#     xticks,
+#     1 / np.array(threshold["non-shuffled"]["granule"]["rate"]),
+#     "b--",
+#     label="non-shuffled",
+# )
+# ax3.legend()
 # ax3.set_xlabel("distance (cm)")
+# ax3.set_title("granule rate code")
+# ax3.set_ylabel("Speed (1/N)")
+
+
+# ax4.plot(
+#     xticks,
+#     1 / np.array(threshold["shuffled"]["granule"]["phase"]),
+#     "k-",
+#     label="shuffled",
+# )
+# ax4.plot(
+#     xticks,
+#     1 / np.array(threshold["non-shuffled"]["granule"]["phase"]),
+#     "b--",
+#     label="non-shuffled",
+# )
+# ax4.legend()
+# ax4.set_title("granule phase code")
 # ax4.set_xlabel("distance (cm)")
-
-import seaborn as sns
-
-plt.figure()
-sns.lineplot(
-    data=a, x="distance", y="speed", hue="shuffling", err_style="bars", ci='sd'
-)
-
-
-
-
-
-
-
-
-# for traj_idx, traj in enumerate(trajectories):
-#     traj = trajectories[traj_idx+1]
-#     print(traj)
-#     if traj_idx == (len(trajectories) - 2):
-#         break
-
-
-
-
-
-
-# def thresholds(code, trajectories, lr=1e-3, n_iter=2000):
-#     ths = []
-#     losses = []
-#     for traj_idx, traj in enumerate(trajectories):
-#         perceptron_input = np.hstack((code[:, :, 0], code[:, :, traj_idx + 1]))
-#         th_cross, train_loss = run_perceptron(
-#             perceptron_input,
-#             grid_seed,
-#             learning_rate=learning_rate,
-#             n_iter=n_iter
-#         )
-#         ths.append(th_cross)
-#         losses.append(train_loss)
-
-#         if traj_idx == (len(trajectories) - 2):
-#             break
-#     return ths, losses
-
-# trajectories + 75
-
-# indices = list(75 - np.array(trajectories))
-
-
-
-
-fig1, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex="col")
-
-fig1.suptitle(
-    "Perceptron learning speed - "
-    + str(n_samples)
-    + " samples \n grid seed= "
-    + str(grid_seed)
-    + ", rate lr = "
-    + format(learning_rate, ".1E")
-    + ", phase lr = "
-    + format(learning, ".1E")
-)
-xticks = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 15]
-ax1.plot(
-    xticks, 1 / np.array(threshold["shuffled"]["grid"]["rate"]),
-    "k-", label="shuffled"
-)
-ax1.plot(
-    xticks,
-    1 / np.array(threshold["non-shuffled"]["grid"]["rate"]),
-    "b--",
-    label="non-shuffled",
-)
-ax1.legend()
-ax1.set_title("grid rate code")
-ax1.set_ylabel("Speed (1/N)")
-
-ax2.plot(
-    xticks, 1 / np.array(threshold["shuffled"]["grid"]["phase"]),
-    "k-", label="shuffled"
-)
-ax2.plot(
-    xticks,
-    1 / np.array(threshold["non-shuffled"]["grid"]["phase"]),
-    "b--",
-    label="non-shuffled",
-)
-ax2.legend()
-ax2.set_title("grid phase code")
-
-
-ax3.plot(
-    xticks,
-    1 / np.array(threshold["shuffled"]["granule"]["rate"]),
-    "k-",
-    label="shuffled",
-)
-ax3.plot(
-    xticks,
-    1 / np.array(threshold["non-shuffled"]["granule"]["rate"]),
-    "b--",
-    label="non-shuffled",
-)
-ax3.legend()
-ax3.set_xlabel("distance (cm)")
-ax3.set_title("granule rate code")
-ax3.set_ylabel("Speed (1/N)")
-
-
-ax4.plot(
-    xticks,
-    1 / np.array(threshold["shuffled"]["granule"]["phase"]),
-    "k-",
-    label="shuffled",
-)
-ax4.plot(
-    xticks,
-    1 / np.array(threshold["non-shuffled"]["granule"]["phase"]),
-    "b--",
-    label="non-shuffled",
-)
-ax4.legend()
-ax4.set_title("granule phase code")
-ax4.set_xlabel("distance (cm)")
-plt.tight_layout()
+# plt.tight_layout()

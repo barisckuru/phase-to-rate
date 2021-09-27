@@ -16,7 +16,7 @@ spacing = 50
 orientation = 30
 pos_peak = [20, 20]
 
-trajectories = [75.0, 70.0, 50.0]
+trajectories = [75.0]
 simulation_result = grid_model.grid_simulate(
     trajectories,
     dur_ms=2000,
@@ -29,7 +29,7 @@ simulation_result = grid_model.grid_simulate(
     arr_size=200,
     f=10,
     shift_deg=180,
-    dt_s=0.002,
+    dt_s=0.001,
     large_output=True
 )
 """
