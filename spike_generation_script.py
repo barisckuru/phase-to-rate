@@ -27,7 +27,7 @@ neuron_tools.load_compiled_mechanisms(
 """Parameters"""
 grid_seeds = [1]
 
-# trajectories, p = [75], 100  # In cm
+trajectories, p = [75], 100  # In cm
 # trajectories, p = [74.5], 200
 # trajectories, p = [74], 300
 # trajectories, p = [73.5], 400
@@ -40,7 +40,7 @@ grid_seeds = [1]
 # trajectories, p = [68], 1100
 # trajectories, p = [67], 1200
 # trajectories, p = [66], 1300
-trajectories, p = [65], 10400
+# trajectories, p = [65], 10400
 # trajectories, p = [60], 1500
 # trajectories, p = [30], 1600
 # trajectories, p = [15], 1700
@@ -49,8 +49,8 @@ poisson_seeds = np.arange(p, p + 1000, 1)
 poisson_seeds = list(poisson_seeds)
 
 
-# shuffling = "non-shuffled"
-shuffling = "shuffled"
+shuffling = "non-shuffled"
+# shuffling = "shuffled"
 # poisson_reseeding = True  # Controls seeding between trajectories
 speed_cm = 20
 dur_ms = 2000
@@ -74,7 +74,7 @@ print("grid", grid_seeds, "poiss", poisson_seeds,
 
 
 for grid_seed in grid_seeds:
-    save_dir = ("/home/baris/results/1000_poisson/seed_"
+    save_dir = ('/home/baris/results/'+network_type+'/seperate/seed_'
                 + str(grid_seed))
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
