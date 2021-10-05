@@ -214,8 +214,8 @@ def _collect_spikes(
     dur_ms,
     trajectories,
     network_type,
-    separate_path="/home/baris/results/trajectories_seperate/",
-    collective_path="/home/baris/results/collective/"
+    separate_path="/home/baris/results/full/trajectories_seperate/",
+    collective_path="/home/baris/results/full/collective/"
 ):
     separate_path = separate_path + "seed_" + str(grid_seed) + "/"
     print(separate_path)

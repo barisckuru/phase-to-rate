@@ -4,6 +4,13 @@
 Created on Mon Sep  6 14:19:20 2021
 
 @author: baris
+
+
+TODO
+in neural coding collect spikes, path is only for full tuned network, automatize it
+
+
+
 """
 
 from neural_coding import load_spikes, rate_n_phase
@@ -31,6 +38,8 @@ for grid_seed in grid_seeds:
     grid_spikes = load_spikes(ns_path, "grid", trajectories, n_samples)
     granule_spikes = load_spikes(ns_path, "granule", trajectories, n_samples)
     
+    print('ns path ok')
+    
     (
         grid_counts,
         grid_phases,
@@ -52,6 +61,8 @@ for grid_seed in grid_seeds:
     s_path = (path + str(grid_seed) + "_2000_shuffled_full.dir")
     s_grid_spikes = load_spikes(s_path, "grid", trajectories, n_samples)
     s_granule_spikes = load_spikes(s_path, "granule", trajectories, n_samples)
+    
+    print('shuffled path ok')
     
     (
         s_grid_counts,
@@ -208,7 +219,7 @@ plt.tight_layout()
 
 'pearson r'
 
-
+from scipy import stats
 from scipy.stats import pearsonr,  spearmanr
 
 r_data = []
@@ -243,78 +254,106 @@ df = pd.DataFrame(r_data,
 
 df = df.drop(columns='trajectories')
 
-new_df = df.pivot(columns='cell_type')['pearson_r','distance','code_type', 'shuffling'].reset
 
-a = df.pivot(columns='cell_type')
+shuffled_grid_rate = (df.loc[(df['cell_type'] == 'grid') &
+                             (df['code_type'] == 'rate') &
+                             (df['shuffling'] == 'shuffled')]# &
+                             # (df['grid_seed'] == 1)]
+                             [['distance', 'grid_seed',
+                               'pearson_r']].reset_index(drop=True))
+shuffled_granule_rate = (df.loc[(df['cell_type'] == 'granule') &
+                                (df['code_type'] == 'rate') & 
+                                (df['shuffling'] == 'shuffled')]
+                                # (df['grid_seed'] == 1)]
+                                ['pearson_r'].reset_index(drop=True))
+shuffled_grid_phase = (df.loc[(df['cell_type'] == 'grid') &
+                              (df['code_type'] == 'phase') &
+                              (df['shuffling'] == 'shuffled')]
+                               # (df['grid_seed'] == 1)]
+                              ['pearson_r'].reset_index(drop=True))
+shuffled_granule_phase = (df.loc[(df['cell_type'] == 'granule') &
+                                 (df['code_type'] == 'phase') &
+                                 (df['shuffling'] == 'shuffled')]
+                                 # (df['grid_seed'] == 1)]
+                                  ['pearson_r'].reset_index(drop=True))
+nonshuffled_grid_rate = (df.loc[(df['cell_type'] == 'grid') &
+                                (df['code_type'] == 'rate') &
+                                (df['shuffling'] == 'non-shuffled')]
+                                # (df['grid_seed'] == 1)]
+                             ['pearson_r'].reset_index(drop=True))
+nonshuffled_granule_rate = (df.loc[(df['cell_type'] == 'granule') &
+                                   (df['code_type'] == 'rate') &
+                                   (df['shuffling'] == 'non-shuffled')]
+                                   # (df['grid_seed'] == 1)]
+                                    ['pearson_r'].reset_index(drop=True))
+nonshuffled_grid_phase = (df.loc[(df['cell_type'] == 'grid') &
+                                 (df['code_type'] == 'phase') &
+                                 (df['shuffling'] == 'non-shuffled')]
+                                 # (df['grid_seed'] == 1)]
+                                 ['pearson_r'].reset_index(drop=True))
+nonshuffled_granule_phase = (df.loc[(df['cell_type'] == 'granule') &
+                                    (df['code_type'] == 'phase') &
+                                    (df['shuffling'] == 'non-shuffled')]
+                                    # (df['grid_seed'] == 1)]
+                                    ['pearson_r'].reset_index(drop=True))
+
+pearson_r = pd.concat([
+    shuffled_grid_rate, shuffled_granule_rate,
+    nonshuffled_grid_rate, nonshuffled_granule_rate,
+    shuffled_grid_phase, shuffled_granule_phase,
+    nonshuffled_grid_phase, nonshuffled_granule_phase], axis=1)
+pearson_r.columns = ['distance', 'grid_seed', 
+                            's_grid_rate', 's_granule_rate',
+                            'ns_grid_rate', 'ns_granule_rate',
+                            's_grid_phase', 's_granule_phase',
+                            'ns_grid_phase', 'ns_granule_phase'
+                            ]
 
 
-grouped = df.groupby(['shuffling', 'code_type', 'cell_type'])
-shuffled_grid_rate = grouped.get_group(('shuffled', 'rate', 'grid'))
-shuffled_grid_phase = grouped.get_group(('shuffled', 'phase', 'grid'))
-shuffled_granule_rate = grouped.get_group(('shuffled', 'rate', 'granule'))
-shuffled_granule_phase = grouped.get_group(('shuffled', 'phase', 'granule'))
-
-
-nonshuffled_grid_rate = grouped.get_group(('non-shuffled', 'rate', 'grid'))
-nonshuffled_grid_phase = grouped.get_group(('non-shuffled', 'phase', 'grid'))
-nonshuffled_granule_rate = grouped.get_group(('non-shuffled', 'rate', 'granule'))
-nonshuffled_granule_phase = grouped.get_group(('non-shuffled', 'phase', 'granule'))
-
-
-sns.scatterplot(x=list(shuffled_grid_rate['pearson_r']), y =list(shuffled_granule_rate['pearson_r'] ))
-
-
-sns.scatterplot(x=list(shuffled_grid_rate['pearson_r']), y =list(shuffled_granule_rate['pearson_r'] ))
-plt.figure()
-sns.scatterplot(x=list(nonshuffled_grid_rate['pearson_r']), y =list(nonshuffled_granule_rate['pearson_r'] ))
-
-
-sns.scatterplot(x=list(shuffled_grid_phase['pearson_r']), y =list(shuffled_granule_phase['pearson_r'] ))
-plt.figure()
-sns.scatterplot(x=list(nonshuffled_grid_phase['pearson_r']), y =list(nonshuffled_granule_phase['pearson_r'] ))
-
-
-
-
-
-type(list(shuffled_grid_rate['pearson_r']))
-sns.pairplot(df)
-
-
-fig2, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex="col")
-
+fig2, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
 fig2.suptitle(
-    "Perceptron learning speed \n  "
-    + str(n_samples)
-    + " samples per trajectory, "
-    + str(len(grid_seeds))
-    + " grid seeds \n\n rate code learning rate = "
-    + format(rate_learning_rate, ".1E")
-    + "\n phase code learning rate = "
-    + format(phase_learning_rate, ".1E")
-)
-
-ax1.set_title("grid rate code")
-ax2.set_title("grid phase code")
-ax3.set_title("granule rate code")
-ax4.set_title("granule phase code")
+    "Pearson's R \n 10 grid seeds")
+from matplotlib.colors import SymLogNorm, PowerNorm, Normalize
+ax1.set_title("rate shuffled")
+ax2.set_title("rate nonshuffled")
+ax3.set_title("phase shuffled")
+ax4.set_title("phase nonshuffled")
 
 
+hue = list(pearson_r['distance'])
+
+sns.set()
 sns.scatterplot(ax=ax1,
-             data=shuffled_rate, x="grid", y="granule",
-             hue="distance")
+             data=pearson_r, x="s_grid_rate", y="s_granule_rate",
+             hue=hue, hue_norm=SymLogNorm(1), palette='OrRd', s=5)
 sns.scatterplot(ax=ax2,
-             data=shuffled_phase, x="distance", y="speed",
-             hue="shuffling", err_style="bars", ci='sd',
-             )
+             data=pearson_r, x="ns_grid_rate", y="ns_granule_rate",
+             hue=hue, hue_norm=SymLogNorm(1), palette='OrRd', s=5)
 sns.scatterplot(ax=ax3,
-             data=nonshuffled_rate, x="distance", y="speed",
-             hue="shuffling", err_style="bars", ci='sd'
+             data=pearson_r, x="s_grid_phase", y="s_granule_phase",
+             hue=hue, hue_norm=SymLogNorm(1), palette='OrRd', s=5
              )
 sns.scatterplot(ax=ax4,
-             data=nonshuffled_phase, x="distance", y="speed",
-             hue="shuffling", err_style="bars", ci='sd',
+             data=pearson_r, x="ns_grid_phase", y="ns_granule_phase",
+             hue=hue, hue_norm=SymLogNorm(1), palette='OrRd', s=5
              )
+# Remove the legend and add a unity line
+for ax in fig2.axes:
+    ax.get_legend().remove()
+    ax.plot(np.arange(-0.2,1.1,0.1),np.arange(-0.2,1.1,0.1),'g--', linewidth=1)
+    ax.set_xlim(-0.25,0.6)
+    ax.set_ylim(-0.15,0.6)
+    # ax.figure.colorbar(sm)
+
+s_rate = stats.binned_statistic(pearson_r['s_grid_rate'], list((pearson_r['s_grid_rate'], pearson_r['s_granule_rate'])), 'mean', bins=[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
+s_phase = stats.binned_statistic(pearson_r['s_grid_phase'], list((pearson_r['s_grid_phase'], pearson_r['s_granule_phase'])), 'mean', bins=[0,0.1,0.2,0.3,0.4])
+ns_rate = stats.binned_statistic(pearson_r['ns_grid_rate'], list((pearson_r['ns_grid_rate'], pearson_r['ns_granule_rate'])), 'mean', bins=[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
+ns_phase = stats.binned_statistic(pearson_r['ns_grid_phase'], list((pearson_r['ns_grid_phase'], pearson_r['ns_granule_phase'])), 'mean', bins=[0,0.1,0.2,0.3,0.4,0.5])
+
+ax1.plot(s_rate[0][0], s_rate[0][1], 'k', linestyle=(0, (6, 2)), linewidth=3)
+ax2.plot(ns_rate[0][0], ns_rate[0][1], 'k', linestyle=(0, (6, 2)), linewidth=3)
+ax3.plot(s_phase[0][0], s_phase[0][1], 'k', linestyle=(0, (6, 1)), linewidth=3)
+ax4.plot(ns_phase[0][0], ns_phase[0][1], 'k', linestyle=(0, (6, 2)), linewidth=3)
 
 
 plt.tight_layout()
@@ -322,4 +361,149 @@ plt.tight_layout()
 
 
 
+
+
+
+
+'spearman rho'
+
+from scipy import stats
+from scipy.stats import pearsonr,  spearmanr
+
+r_data = []
+for grid_seed in all_codes:
+    for shuffling in all_codes[grid_seed]:
+        for cell in all_codes[grid_seed][shuffling]:
+            for code in all_codes[grid_seed][shuffling][cell]:
+                for traj_idx in range(len(trajectories)):
+                    r_input_code = all_codes[grid_seed][shuffling][cell][code]
+                    f = int(r_input_code.shape[0]/8000)
+                    baseline_traj = np.concatenate((
+                        r_input_code[1000*f:1200*f, 0, 0], 
+                        r_input_code[5000*f:5200*f, 0, 0]))
+                    for poisson in range(r_input_code.shape[2]):
+                        compared_traj = r_input_code[:, poisson, traj_idx]
+                        compared_traj = np.concatenate((
+                            compared_traj[1000*f:1200*f],
+                            compared_traj[5000*f:5200*f]))
+                        spearman_r = spearmanr(baseline_traj, compared_traj)[0]
+                        traj = trajectories[traj_idx]
+                        idx = 75 - traj
+                        comp_trajectories = str(75)+'_'+str(traj)
+                        r_data_sing = [idx, spearman_r, poisson,
+                                     comp_trajectories, grid_seed, shuffling,
+                                     cell, code]
+                        r_data.append(copy.deepcopy(r_data_sing))
+
+df = pd.DataFrame(r_data,
+                  columns=['distance', 'spearman_r', 'poisson_seed',
+                           'trajectories', 'grid_seed',
+                           'shuffling', 'cell_type', 'code_type'])
+
+df = df.drop(columns='trajectories')
+
+
+
+shuffled_grid_rate = (df.loc[(df['cell_type'] == 'grid') &
+                             (df['code_type'] == 'rate') &
+                             (df['shuffling'] == 'shuffled') &
+                             (df['grid_seed'] == 1)]
+                             [['distance', 'grid_seed',
+                               'spearman_r']].reset_index(drop=True))
+shuffled_granule_rate = (df.loc[(df['cell_type'] == 'granule') &
+                                (df['code_type'] == 'rate') & 
+                                (df['shuffling'] == 'shuffled') &
+                                (df['grid_seed'] == 1)]
+                                ['spearman_r'].reset_index(drop=True))
+shuffled_grid_phase = (df.loc[(df['cell_type'] == 'grid') &
+                              (df['code_type'] == 'phase') &
+                              (df['shuffling'] == 'shuffled') &
+                              (df['grid_seed'] == 1)]
+                              ['spearman_r'].reset_index(drop=True))
+shuffled_granule_phase = (df.loc[(df['cell_type'] == 'granule') &
+                                 (df['code_type'] == 'phase') &
+                                 (df['shuffling'] == 'shuffled') &
+                                 (df['grid_seed'] == 1)]
+                                  ['spearman_r'].reset_index(drop=True))
+nonshuffled_grid_rate = (df.loc[(df['cell_type'] == 'grid') &
+                                (df['code_type'] == 'rate') &
+                                (df['shuffling'] == 'non-shuffled') &
+                                (df['grid_seed'] == 1)]
+                             ['spearman_r'].reset_index(drop=True))
+nonshuffled_granule_rate = (df.loc[(df['cell_type'] == 'granule') &
+                                   (df['code_type'] == 'rate') &
+                                   (df['shuffling'] == 'non-shuffled') &
+                                    (df['grid_seed'] == 1)]
+                                    ['spearman_r'].reset_index(drop=True))
+nonshuffled_grid_phase = (df.loc[(df['cell_type'] == 'grid') &
+                                 (df['code_type'] == 'phase') &
+                                 (df['shuffling'] == 'non-shuffled') &
+                                  (df['grid_seed'] == 1)]
+                                 ['spearman_r'].reset_index(drop=True))
+nonshuffled_granule_phase = (df.loc[(df['cell_type'] == 'granule') &
+                                    (df['code_type'] == 'phase') &
+                                    (df['shuffling'] == 'non-shuffled') &
+                                    (df['grid_seed'] == 1)]
+                                    ['spearman_r'].reset_index(drop=True))
+
+spearman_r = pd.concat([
+    shuffled_grid_rate, shuffled_granule_rate,
+    nonshuffled_grid_rate, nonshuffled_granule_rate,
+    shuffled_grid_phase, shuffled_granule_phase,
+    nonshuffled_grid_phase, nonshuffled_granule_phase], axis=1)
+spearman_r.columns = ['distance', 'grid_seed', 
+                            's_grid_rate', 's_granule_rate',
+                            'ns_grid_rate', 'ns_granule_rate',
+                            's_grid_phase', 's_granule_phase',
+                            'ns_grid_phase', 'ns_granule_phase'
+                            ]
+
+
+fig2, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+fig2.suptitle(
+    "Spearman's rho \n 1 grid seed")
+from matplotlib.colors import SymLogNorm, PowerNorm, Normalize
+ax1.set_title("rate shuffled")
+ax2.set_title("rate nonshuffled")
+ax3.set_title("phase shuffled")
+ax4.set_title("phase nonshuffled")
+
+
+hue = list(spearman_r['distance'])
+
+sns.set()
+sns.scatterplot(ax=ax1,
+             data=spearman_r, x="s_grid_rate", y="s_granule_rate",
+             hue=hue, hue_norm=SymLogNorm(1), palette='OrRd', s=5)
+sns.scatterplot(ax=ax2,
+             data=spearman_r, x="ns_grid_rate", y="ns_granule_rate",
+             hue=hue, hue_norm=SymLogNorm(1), palette='OrRd', s=5)
+sns.scatterplot(ax=ax3,
+             data=spearman_r, x="s_grid_phase", y="s_granule_phase",
+             hue=hue, hue_norm=SymLogNorm(1), palette='OrRd', s=5
+             )
+sns.scatterplot(ax=ax4,
+             data=spearman_r, x="ns_grid_phase", y="ns_granule_phase",
+             hue=hue, hue_norm=SymLogNorm(1), palette='OrRd', s=5
+             )
+# Remove the legend and add a unity line
+for ax in fig2.axes:
+    ax.get_legend().remove()
+    ax.plot(np.arange(-0.2,1.1,0.1),np.arange(-0.2,1.1,0.1),'g--', linewidth=1)
+    ax.set_xlim(-0.25,0.6)
+    ax.set_ylim(-0.15,0.6)
+    # ax.figure.colorbar(sm)
+
+s_rate = stats.binned_statistic(spearman_r['s_grid_rate'], list((spearman_r['s_grid_rate'], spearman_r['s_granule_rate'])), 'mean', bins=[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
+s_phase = stats.binned_statistic(spearman_r['s_grid_phase'], list((spearman_r['s_grid_phase'], spearman_r['s_granule_phase'])), 'mean', bins=[0,0.1,0.2,0.3,0.4])
+ns_rate = stats.binned_statistic(spearman_r['ns_grid_rate'], list((spearman_r['ns_grid_rate'], spearman_r['ns_granule_rate'])), 'mean', bins=[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
+ns_phase = stats.binned_statistic(spearman_r['ns_grid_phase'], list((spearman_r['ns_grid_phase'], spearman_r['ns_granule_phase'])), 'mean', bins=[0,0.1,0.2,0.3,0.4,0.5])
+
+ax1.plot(s_rate[0][0], s_rate[0][1], 'k', linestyle=(0, (6, 2)), linewidth=3)
+ax2.plot(ns_rate[0][0], ns_rate[0][1], 'k', linestyle=(0, (6, 2)), linewidth=3)
+ax3.plot(s_phase[0][0], s_phase[0][1], 'k', linestyle=(0, (6, 1)), linewidth=3)
+ax4.plot(ns_phase[0][0], ns_phase[0][1], 'k', linestyle=(0, (6, 2)), linewidth=3)
+
+
+plt.tight_layout()
 
