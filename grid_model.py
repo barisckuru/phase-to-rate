@@ -283,7 +283,7 @@ def _randomize_grid_spikes(arr, bin_size_ms, time_ms=2000):
 
 
 def _overall(dist_trajs, rate_trajs, shift_deg, T,
-             n_traj, rate_scale, speed_cm, dur_s):
+             n_grid, n_traj, rate_scale, speed_cm, dur_s):
     """
     Generate the overall oscillatory firing profile for simulated trajecotries.
 
@@ -297,6 +297,8 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
         amount of phase precession in degrees.
     T : int
         period of theta oscillation.
+    n_grid : int
+        number of grid cells.
     n_traj : int
         number of trajectories.
     rate_scale : int
@@ -329,7 +331,7 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
     traj_dist_dir, dist_t_arr = _interp(traj_dist_dir, dur_s)
     factor = shift_deg / 360  # adjust the phase shift with a factor
     one_theta_phase = (2 * np.pi * (dist_t_arr % T) / T) % (2 * np.pi)
-    theta_phase = np.repeat(one_theta_phase[np.newaxis, :], 200, axis=0)
+    theta_phase = np.repeat(one_theta_phase[np.newaxis, :], n_grid, axis=0)
     theta_phase = np.repeat(theta_phase[:, :, np.newaxis], n_traj, axis=2)
     firing_phase_dir = 2 * np.pi * (traj_dist_dir + 0.5) * factor
     phase_code_dir = np.exp(1.5 * np.cos(firing_phase_dir - theta_phase))
@@ -557,7 +559,7 @@ def grid_simulate(
     rate_trajs, rate_t_arr = _interp(rate_trajs, dur_s, new_dt_s=dt_s)
     overall = _overall(
         dist_trajs, rate_trajs, shift_deg, T,
-        n_traj, rate_scale, speed_cm, dur_s)
+        n_grid, n_traj, rate_scale, speed_cm, dur_s)
 
     # for idx, poiss_seed in enumerate(poiss_seeds):
     grid_spikes = _spike_generator(
