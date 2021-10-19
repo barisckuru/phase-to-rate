@@ -175,6 +175,7 @@ def load_spikes(path, cell_type, trajectories, n_samples):
     """
     if not os.path.exists(path):
         print(path)
+        print('path does not exist')
         split = path.split("_")
         grid_seed = int(split[4])
         shuffling = split[6]
@@ -214,8 +215,8 @@ def _collect_spikes(
     dur_ms,
     trajectories,
     network_type,
-    separate_path="/home/baris/results/full/trajectories_seperate/",
-    collective_path="/home/baris/results/full/collective/"
+    separate_path="/home/baris/results/no-feedback/seperate/",
+    collective_path="/home/baris/results/no-feedback/collective/"
 ):
     separate_path = separate_path + "seed_" + str(grid_seed) + "/"
     print(separate_path)
@@ -251,6 +252,6 @@ def _collect_spikes(
 trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 
-for i in np.arange(1,11,1):
-    print(i)
-    _collect_spikes(i, 'shuffled', 2000, trajectories, 'full')
+# for i in np.arange(1,11,1):
+#     print(i)
+#     _collect_spikes(i, 'non-shuffled', 2000, trajectories, 'no-feedback')

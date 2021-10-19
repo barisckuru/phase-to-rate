@@ -26,7 +26,7 @@ neuron_tools.load_compiled_mechanisms(
 
 """Parameters"""
 grid_seeds = [1,2,3,4,5,6,7,8,9,10]
-
+# grid_seeds = [1]
 # trajectories, p = [75], 100  # In cm
 # trajectories, p = [74.5], 200
 # trajectories, p = [74], 300
@@ -57,7 +57,11 @@ dur_ms = 2000
 rate_scale = 5
 n_grid = 200
 pp_weight = 9e-4
+# network_type = "no-feedback"
 network_type = "disinhibited"
+# network_type = "no-feedforward"
+
+print(network_type)
 
 parameters = {}
 parameters = {
@@ -75,7 +79,7 @@ print("grid", grid_seeds, "poiss", poisson_seeds,
 
 for grid_seed in grid_seeds:
     save_dir = (f'/home/baris/results/{network_type}/seperate/seed_'
-                + str(grid_seed))
+                + str(grid_seed) + '/')
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
     output_path = (
