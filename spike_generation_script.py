@@ -127,24 +127,8 @@ for grid_seed in grid_seeds:
     storage["granule_spikes"] = copy.deepcopy(granule_spikes)
     storage["parameters"] = parameters
     print("seed " + str(grid_seed) + " completed")
+    storage.close()
 
-    # collective storage
-    # output_name = f"{grid_seed}_{dur_ms}"
-    # storage_path = "/home/baris/results/grid-seed_duration_shuffling_tuning_"
-    # storage_name = (storage_path + output_name + "_"
-    #                 + shuffling + "_" + network_type)
-    # collective_storage = shelve.open(storage_name, writeback=True)
-    # traj_key = str(traj)
-    # collective_storage[traj_key] = {}
-    # collective_storage[traj_key]["grid_spikes"] = copy.deepcopy(
-    #     grid_spikes[traj])
-    # collective_storage[traj_key]["granule_spikes"] = copy.deepcopy(
-    #     granule_spikes[traj])
-    # collective_storage[traj_key]["parameters"] = parameters
-
-
-storage.close()
-# collective_storage.close()
 
 
 stop = time.time()
