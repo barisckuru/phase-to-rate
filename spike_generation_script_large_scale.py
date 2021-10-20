@@ -15,6 +15,7 @@ import numpy as np
 from pydentate_integrate import granule_simulate
 import os
 import argparse
+import pdb
 
 pr = argparse.ArgumentParser(description='Simulate pydentae with grid cell inputs')
 pr.add_argument('-gs',
@@ -29,7 +30,7 @@ pr.add_argument('-ps',
                 dest='poisson_seeds',
                 required=True)
 pr.add_argument('-t',
-                nargs=5,
+                nargs=1,
                 type=float,
                 help='The trajectories',
                 dest='trajectories',
@@ -41,7 +42,7 @@ pr.add_argument('-s',
                 required=True)
 pr.add_argument('-n',
                 type=str,
-                help='The network type, "tuned", "no-feedback", "no-feedforward" or "disinhibited"',
+                help='The network type, "full", "no-feedback", "no-feedforward" or "disinhibited"',
                 dest='network_type',
                 required=True)
 args = pr.parse_args()
@@ -57,7 +58,7 @@ grid_seed = args.grid_seed
 trajectories = args.trajectories
 shuffling = args.shuffling
 speed_cm = 20
-dur_ms = 2000
+dur_ms = 100  # TODO
 rate_scale = 5
 n_grid = 200
 pp_weight = 9e-4
@@ -89,8 +90,6 @@ file_name_data = f"{grid_seed}_{trajectories}_{args.poisson_seeds}_{dur_ms}_{shu
 file_name = f"{file_name_signature}_{file_name_data}"
 shelve_loc = os.path.join(save_dir, file_name)
 
-storage = shelve.open(shelve_loc, writeback=True)
-
 grid_spikes, _ = grid_simulate(
     trajs=trajectories,
     dur_ms=dur_ms,
@@ -101,12 +100,35 @@ grid_spikes, _ = grid_simulate(
     speed_cm=speed_cm,
     rate_scale=rate_scale,
 )
+del _  # Delete unused output to free up memory
 
-granule_spikes = {}
+# Write grid_spikes, parameters and initialize storage for granule cells
+with shelve.open(shelve_loc) as storage:
+    # If grid spikes already exist on file, check data integrity
+    if "grid_spikes" in storage.keys():
+        k1 = list(storage['grid_spikes'].keys())[0]
+        k2 = list(storage['grid_spikes'][k1].keys())[0]
+
+        compare = storage['grid_spikes'][k1][k2][0] == grid_spikes[k1][k2][0]
+        if not compare.all():
+            raise ValueError("grid_spikes on file not equal simulated grid_spikes. Check storage integrity!")
+    # If grid spikes do not already exist, write them to file
+    else:
+        storage["grid_spikes"] = copy.deepcopy(grid_spikes)
+        storage["parameters"] = parameters
+
+    # Create granule_spikes dict only if it does not already exist
+    if not "granule_spikes" in storage.keys():
+        storage["granule_spikes"] = {traj:{} for traj in trajectories}
+
 for traj in trajectories:
-    granule_spikes[traj] = {}
     for poisson_seed in poisson_seeds:
-        granule_spikes[traj][poisson_seed] = {}
+        # Skip if the poisson seed already exists on file
+        with shelve.open(shelve_loc) as storage:
+            if poisson_seed in storage["granule_spikes"][traj].keys():
+                print(f"Poisson seed {poisson_seed} already on file! Skipped.")
+                continue
+        print(f"Current poisson seed: {poisson_seed}")
         granule_spikes_poiss = granule_simulate(
             grid_spikes[traj][poisson_seed],
             dur_ms=dur_ms,
@@ -114,13 +136,9 @@ for traj in trajectories:
             grid_seed=grid_seed,
             pp_weight=pp_weight,
         )
-        granule_spikes[traj][poisson_seed] = granule_spikes_poiss
+        pdb.set_trace()
+        # Write granule spikes from the current poisson seed to file
+        with shelve.open(shelve_loc) as storage:
+            storage["granule_spikes"][traj][poisson_seed] = granule_spikes_poiss
 
-storage["grid_spikes"] = copy.deepcopy(grid_spikes)
-storage["granule_spikes"] = copy.deepcopy(granule_spikes)
-storage["parameters"] = parameters
 print("seed " + str(grid_seed) + " completed")
-
-storage.close()
-
-print(f"Grid seed {grid_seed} done.")
