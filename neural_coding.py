@@ -219,7 +219,7 @@ def _collect_spikes(
 ):
 
     collective_path = path + str(network_type) + "/collective/"
-    separate_path = (path + str(network_type) + "/separate/" +
+    separate_path = (path + str(network_type) + "/seperate/" +
                      "seed_" + str(grid_seed) + "/")
     print(separate_path)
 
@@ -257,4 +257,4 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 
 # for i in np.arange(1,11,1):
 #     print(i)
-#     _collect_spikes(i, 'non-shuffled', 2000, trajectories, 'disinhibited')
+#     _collect_spikes(i, 'shuffled', 2000, trajectories, 'disinhibited')
