@@ -6,15 +6,6 @@ Created on Mon Sep  6 14:19:20 2021
 @author: baris
 
 
-TODO
-in neural coding collect spikes, path is only for full tuned network, automatize it
-
-
-collective data is generated for the no-feedback
-
-but this script still goes over the full network
-
-
 """
 
 from neural_coding import load_spikes, rate_n_phase
@@ -23,6 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from sklearn import decomposition
 
 trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
@@ -102,18 +94,35 @@ for grid_seed in grid_seeds:
     all_codes[grid_seed]['shuffled']['granule'] = {'rate': s_granule_rate_code,
                       'phase': s_granule_phase_code}
 
-    # all_codes[grid_seed]['non-shuffled']['grid'] = {'rate': grid_rate_code,
-    #                   'phase': grid_phase_code,
-    #                   'polar': grid_polar_code}
-    # all_codes[grid_seed]['shuffled']['grid'] = {'rate': s_grid_rate_code,
-    #                   'phase': s_grid_phase_code,
-    #                   'polar': s_grid_polar_code}
-    # all_codes[grid_seed]['non-shuffled']['granule'] = {'rate': granule_rate_code,
-    #                   'phase': granule_phase_code,
-    #                   'polar': granule_polar_code}
-    # all_codes[grid_seed]['shuffled']['granule'] = {'rate': s_granule_rate_code,
-    #                   'phase': s_granule_phase_code,
-    #                   'polar': s_granule_polar_code}
+
+
+
+
+
+
+
+# PCA
+
+seed = 1
+cell = 'grid'
+code = 'rate'
+shuffling = 'non-shuffled'
+compared_traj = 16 # baseline traj is at 75 cm --> 0
+
+n_comp = 5
+
+# grid
+
+grid_rate_shuffled_1 = all_codes[seed][shuffling][cell][code][:,:,0]
+grid_rate_shuffled_2 = all_codes[seed][shuffling][cell][code][:,:,compared_traj]
+x = np.hstack((grid_rate_shuffled_1, grid_rate_shuffled_2)).T
+
+pca = decomposition.PCA(n_components=n_comp)
+pca.fit(x)
+pca.explained_variance_ratio_
+
+
+
 
 
 
