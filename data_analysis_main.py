@@ -66,7 +66,7 @@ for grid_seed in grid_seeds:
     
     
     # shuffled
-    s_path = (path + str(grid_seed) + "_2000_shuffled_"+str(tuning)+".dir")
+    s_path = (path + str(grid_seed) + "_2000_shuffled_"+str(tuning))
     s_grid_spikes = load_spikes(s_path, "grid", trajectories, n_samples)
     s_granule_spikes = load_spikes(s_path, "granule", trajectories, n_samples)
     
