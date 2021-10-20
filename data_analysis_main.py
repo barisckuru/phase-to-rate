@@ -29,7 +29,9 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 n_samples = 20
 grid_seeds = np.arange(1,11,1)
 
-tuning = 'no-feedback'
+grid_seeds = np.array([1])
+
+tuning = 'full'
 
 rate_learning_rate = 1e-4
 phase_learning_rate = 1e-3
@@ -40,7 +42,7 @@ for grid_seed in grid_seeds:
     path = "/home/baris/results/"+str(tuning)+"/collective/grid-seed_duration_shuffling_tuning_"
     
     # non-shuffled
-    ns_path = (path + str(grid_seed) + "_2000_non-shuffled_"+str(tuning)+".dir")
+    ns_path = (path + str(grid_seed) + "_2000_non-shuffled_"+str(tuning))
     grid_spikes = load_spikes(ns_path, "grid", trajectories, n_samples)
     granule_spikes = load_spikes(ns_path, "granule", trajectories, n_samples)
     

@@ -173,7 +173,7 @@ def load_spikes(path, cell_type, trajectories, n_samples):
         returns loaded spikes from different trajectories.
 
     """
-    if not os.path.exists(path):
+    if not os.path.exists(path+'.dir'):
         print(path)
         raise Exception('Path does not exist!')
 
