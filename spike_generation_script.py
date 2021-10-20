@@ -45,8 +45,6 @@ grid_seeds = [1,2,3,4,5,6,7,8,9,10]
 # trajectories, p = [30], 1600
 trajectories, p = [15], 1700
 
-trajectories, p = [15, 20], 1700
-
 poisson_seeds = np.arange(p, p + 20, 1)
 poisson_seeds = list(poisson_seeds)
 
