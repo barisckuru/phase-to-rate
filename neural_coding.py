@@ -173,16 +173,11 @@ def load_spikes(path, cell_type, trajectories, n_samples):
         returns loaded spikes from different trajectories.
 
     """
-    if not os.path.exists(path):
+    if not os.path.exists(path+'.dir'):
         print(path)
-        print('path does not exist')
-        split = path.split("_")
-        grid_seed = int(split[4])
-        shuffling = split[6]
-        dur_ms = split[5]
-        _collect_spikes(grid_seed, shuffling, dur_ms)
+        raise Exception('Path does not exist!')
 
-    storage = shelve.open(path[:-4])
+    storage = shelve.open(path)
     spikes = {}
     for traj in trajectories:
         print(traj)
@@ -215,25 +210,28 @@ def _collect_spikes(
     dur_ms,
     trajectories,
     network_type,
-    separate_path="/home/baris/results/no-feedback/seperate/",
-    collective_path="/home/baris/results/no-feedback/collective/"
+    path="/home/baris/results/"
 ):
-    separate_path = separate_path + "seed_" + str(grid_seed) + "/"
+
+    collective_path = path + str(network_type) + "/collective/"
+    separate_path = (path + str(network_type) + "/seperate/" +
+                     "seed_" + str(grid_seed) + "/")
     print(separate_path)
-      
+
     for traj in trajectories:
         print(traj)
-        file = glob.glob(os.path.join(separate_path, "*%s*_%s*.dat" %(traj, shuffling)))[0][0:-4]
+        file = glob.glob(os.path.join(
+            separate_path, "*%s*_%s*.dat" % (traj, shuffling)))[0][0:-4]
         fname = f"{separate_path}*{traj}]*_{shuffling}*.dat"
         file = glob.glob(fname)[0][0:-4]
         print(file)
         storage_old = shelve.open(file)
         output_name = f"{grid_seed}_{dur_ms}"
         collective_storage = []
-        collective_storage = (collective_path + "grid-seed_duration_shuffling_tuning_"
-        )
+        collective_storage = (collective_path +
+                              "grid-seed_duration_shuffling_tuning_")
         collective_storage = (collective_storage + output_name + "_" +
-                        shuffling + "_" + network_type)
+                              shuffling + "_" + network_type)
         storage = shelve.open(collective_storage, writeback=True)
         traj_key = str(traj)
         storage[traj_key] = {}
@@ -249,9 +247,8 @@ def _collect_spikes(
         storage_old.close()
 
 
-trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
-                71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
-
+# trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
+#                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 # for i in np.arange(1,11,1):
 #     print(i)
-#     _collect_spikes(i, 'non-shuffled', 2000, trajectories, 'no-feedback')
+#     _collect_spikes(i, 'shuffled', 2000, trajectories, 'disinhibited')
