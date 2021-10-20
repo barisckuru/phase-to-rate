@@ -215,25 +215,28 @@ def _collect_spikes(
     dur_ms,
     trajectories,
     network_type,
-    separate_path="/home/baris/results/no-feedback/seperate/",
-    collective_path="/home/baris/results/no-feedback/collective/"
+    path="/home/baris/results/"
 ):
-    separate_path = separate_path + "seed_" + str(grid_seed) + "/"
+
+    collective_path = path + str(network_type) + "/collective/"
+    separate_path = (path + str(network_type) + "/separate/" +
+                     "seed_" + str(grid_seed) + "/")
     print(separate_path)
-      
+
     for traj in trajectories:
         print(traj)
-        file = glob.glob(os.path.join(separate_path, "*%s*_%s*.dat" %(traj, shuffling)))[0][0:-4]
+        file = glob.glob(os.path.join(
+            separate_path, "*%s*_%s*.dat" % (traj, shuffling)))[0][0:-4]
         fname = f"{separate_path}*{traj}]*_{shuffling}*.dat"
         file = glob.glob(fname)[0][0:-4]
         print(file)
         storage_old = shelve.open(file)
         output_name = f"{grid_seed}_{dur_ms}"
         collective_storage = []
-        collective_storage = (collective_path + "grid-seed_duration_shuffling_tuning_"
-        )
+        collective_storage = (collective_path +
+                              "grid-seed_duration_shuffling_tuning_")
         collective_storage = (collective_storage + output_name + "_" +
-                        shuffling + "_" + network_type)
+                              shuffling + "_" + network_type)
         storage = shelve.open(collective_storage, writeback=True)
         traj_key = str(traj)
         storage[traj_key] = {}
@@ -254,4 +257,4 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 
 # for i in np.arange(1,11,1):
 #     print(i)
-#     _collect_spikes(i, 'non-shuffled', 2000, trajectories, 'no-feedback')
+#     _collect_spikes(i, 'non-shuffled', 2000, trajectories, 'disinhibited')
