@@ -175,14 +175,9 @@ def load_spikes(path, cell_type, trajectories, n_samples):
     """
     if not os.path.exists(path):
         print(path)
-        print('path does not exist')
-        split = path.split("_")
-        grid_seed = int(split[4])
-        shuffling = split[6]
-        dur_ms = split[5]
-        _collect_spikes(grid_seed, shuffling, dur_ms)
+        raise Exception('Path does not exist!')
 
-    storage = shelve.open(path[:-4])
+    storage = shelve.open(path)
     spikes = {}
     for traj in trajectories:
         print(traj)
@@ -252,9 +247,8 @@ def _collect_spikes(
         storage_old.close()
 
 
-trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
-                71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
-
+# trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
+#                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 # for i in np.arange(1,11,1):
 #     print(i)
 #     _collect_spikes(i, 'shuffled', 2000, trajectories, 'disinhibited')
