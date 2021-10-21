@@ -58,7 +58,7 @@ grid_seed = args.grid_seed
 trajectories = args.trajectories
 shuffling = args.shuffling
 speed_cm = 20
-dur_ms = 100  # TODO
+dur_ms = 2000  # TODO
 rate_scale = 5
 n_grid = 200
 pp_weight = 9e-4
@@ -141,7 +141,6 @@ for traj in trajectories:
         # Write granule spikes from the current poisson seed to file
         with shelve.open(shelve_loc, writeback=True) as storage:
             storage["granule_spikes"][traj][poisson_seed] = copy.deepcopy(granule_spikes_poiss)
-            print(storage["granule_spikes"][traj][poisson_seed])
 
             
 
