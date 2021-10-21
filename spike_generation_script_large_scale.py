@@ -120,7 +120,8 @@ with shelve.open(shelve_loc) as storage:
     # Create granule_spikes dict only if it does not already exist
     if not "granule_spikes" in storage.keys():
         storage["granule_spikes"] = {traj:{} for traj in trajectories}
-
+        
+# pdb.set_trace()
 for traj in trajectories:
     for poisson_seed in poisson_seeds:
         # Skip if the poisson seed already exists on file
@@ -136,9 +137,12 @@ for traj in trajectories:
             grid_seed=grid_seed,
             pp_weight=pp_weight,
         )
-        pdb.set_trace()
+
         # Write granule spikes from the current poisson seed to file
-        with shelve.open(shelve_loc) as storage:
-            storage["granule_spikes"][traj][poisson_seed] = granule_spikes_poiss
+        with shelve.open(shelve_loc, writeback=True) as storage:
+            storage["granule_spikes"][traj][poisson_seed] = copy.deepcopy(granule_spikes_poiss)
+            print(storage["granule_spikes"][traj][poisson_seed])
+
+            
 
 print("seed " + str(grid_seed) + " completed")
