@@ -1,1 +1,11 @@
-python spike_generation_script_large_scale.py -gs 0 -ps 1000 1100 1 -t [75 74 70 65 60] -s "non-shuffled" -n "tuned"
+python spike_generation_script_large_scale.py -gs 0 -ps 1000 1200 1 -t 75 -s "non-shuffled" -n "full"
+python spike_generation_script_large_scale.py -gs 0 -ps 1200 1400 1 -t 75 -s "non-shuffled" -n "full"
+python spike_generation_script_large_scale.py -gs 0 -ps 1400 1600 1 -t 75 -s "non-shuffled" -n "full"
+python spike_generation_script_large_scale.py -gs 0 -ps 1600 1800 1 -t 75 -s "non-shuffled" -n "full"
+python spike_generation_script_large_scale.py -gs 0 -ps 1800 2000 1 -t 75 -s "non-shuffled" -n "full"
+
+python spike_generation_script_large_scale.py -gs 0 -ps 1000 1200 1 -t 73 -s "non-shuffled" -n "full"
+python spike_generation_script_large_scale.py -gs 0 -ps 1200 1400 1 -t 73 -s "non-shuffled" -n "full"
+python spike_generation_script_large_scale.py -gs 0 -ps 1400 1600 1 -t 73 -s "non-shuffled" -n "full"
+python spike_generation_script_large_scale.py -gs 0 -ps 1600 1800 1 -t 73 -s "non-shuffled" -n "full"
+python spike_generation_script_large_scale.py -gs 0 -ps 1800 2000 1 -t 73 -s "non-shuffled" -n "full"
