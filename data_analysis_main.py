@@ -18,6 +18,15 @@ from sklearn import decomposition
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 import pickle
 
+
+
+# =============================================================================
+# =============================================================================
+# # Load the data
+# =============================================================================
+# =============================================================================
+
+
 trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 
@@ -104,11 +113,25 @@ for grid_seed in grid_seeds:
 
 
 
+# =============================================================================
+# =============================================================================
+# # Load the data
+# =============================================================================
+# =============================================================================
 
 
 
-# PCA
 
+
+
+
+# =============================================================================
+# =============================================================================
+# # ''' PCA'''
+# =============================================================================
+# =============================================================================
+
+# all principal components vs explained ratio in all sampels pooled
 seed = 1
 cells = ['grid','granule']
 codes = ['rate','phase']
@@ -118,6 +141,7 @@ n_comp = 160
 select_bin = 5
 # comp_ratio = []
 ct = 0
+
 plt.figure()
 for cell in cells:
     if cell == 'grid':
@@ -143,74 +167,58 @@ plt.ylabel('Ratio (0-1)')
 plt.xlabel('Principal Component')
 plt.title("All trajectories (75-15cm) pooled explained varience \n 1 time bin, 1 grid seed")   
 
-for compared_traj in range(len(trajectories)):
-    grid_rate_shuffled_1 = all_codes[seed][shuffling][cell][code][:,:,0]
-    grid_rate_shuffled_2 = all_codes[seed][shuffling][cell][code][:,:,compared_traj]
-    x = np.hstack((grid_rate_shuffled_1, grid_rate_shuffled_2)).T
-    cut = select_bin*n_cell
-    mid = int(x.shape[1]/2)
-    x = np.concatenate((x[:, cut:(cut+n_cell)], 
-                        x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
-    
-    pca = decomposition.PCA(n_components=n_comp)
-    pca.fit(x)
-    comp_ratio = pca.explained_variance_ratio_
-    # ratios_explained_5.append(sum(comp_ratio[:5]))
-    
-plt.figure()
-plt.plot(comp_ratio, labels = 'shuffled')
-# plt.xticks(np.arange(0,16), trajectories[1:])
-plt.ylabel('Ratio (0-1)')
-plt.xlabel('75 vs trajectories')
-plt.title(f" \n {cell} {code} {shuffling} \n 1 time bin, 1 grid seed")
 
-    
+
+# sum of first 3 components
+
+seed = 1
+cells = ['grid','granule']
+codes = ['rate','phase']
+shufflings = ['non-shuffled','shuffled']
+compared_traj = 16 # baseline traj is at 75 cm --> 0
+n_comp = 40
+select_bin = 5
+# comp_ratio = []
+ct = 0
+
 plt.figure()
-plt.plot(ratios_explained_5[1:])
+for cell in cells:
+    if cell == 'grid':
+        n_cell = 200
+    elif cell == 'granule':
+        n_cell = 2000
+    for code in codes:
+        for shuffling in shufflings:
+            ratios_explained_3 = []
+            for compared_traj in range(len(trajectories)):
+                grid_rate_shuffled_1 = all_codes[seed][shuffling][cell][code][:,:,0]
+                grid_rate_shuffled_2 = all_codes[seed][shuffling][cell][code][:,:,compared_traj]
+                x = np.hstack((grid_rate_shuffled_1, grid_rate_shuffled_2)).T
+                cut = select_bin*n_cell
+                mid = int(x.shape[1]/2)
+                x = np.concatenate((x[:, cut:(cut+n_cell)], 
+                                    x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
+                
+                pca = decomposition.SparsePCA(n_components=n_comp)
+                pca.fit_transform(x)
+                comp_ratio = pca.explained_variance_ratio_
+                ct +=1
+                ratios_explained_3.append(sum(comp_ratio[:3]))
+            plt.plot(ratios_explained_3, label = f'{cell} {code} {shuffling}')
 plt.xticks(np.arange(0,16), trajectories[1:])
-plt.ylabel('Ratio (0-1)')
-plt.xlabel('75 vs trajectories')
-plt.title(f"Sum of explained ratio of first 5 component PCA \n {cell} {code} {shuffling} \n 1 time bin, 1 grid seed")
-
-
-x = all_codes[seed][shuffling][cell][code]
-x = x.reshape(x.shape[0], x.shape[1]*x.shape[2]).T
-cut = select_bin*n_cell
-mid = int(x.shape[1]/2)
-x = np.concatenate((x[:, cut:(cut+n_cell)], 
-                    x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
-
-pca = decomposition.PCA(n_components=n_comp)
-pca.fit(x)
-comp_ratio = pca.explained_variance_ratio_
-comp_ratio[:5]
+plt.legend()        
+plt.ylabel('Summed ratio')
+plt.xlabel('75 vs Trajectories')
+plt.title("Sum of explained varience of first 3 PCA components \n 1 time bin, 1 grid seed")   
 
 
 
-grid rate non-shuffled
-array([0.09917002, 0.06529963, 0.03134775, 0.01725261, 0.01666521])
-grid rate shuffled
-array([0.09917002, 0.06529963, 0.03134775, 0.01725261, 0.01666521])
 
-grid phase non-shuffled
-array([0.0358334 , 0.02821797, 0.01330059, 0.01174804, 0.01150775])
-grid phase shuffled
-array([0.01571848, 0.01227663, 0.01190683, 0.01140895, 0.01126554])
-
-
-
-granule rate non-shuffled
-array([0.02898133, 0.01937996, 0.01198025, 0.01116137, 0.01085838])
-granule rate shuffled
-array([0.01890724, 0.01418187, 0.01050521, 0.01046707, 0.01027766])
-
-granule phase non-shuffled
-array([0.02487623, 0.01666365, 0.010095  , 0.00977518, 0.00932536])
-granule phase shuffled
-array([0.01508051, 0.01164488, 0.00910163, 0.00874188, 0.00870333])
-
-
-
+# =============================================================================
+# =============================================================================
+# # PCA
+# =============================================================================
+# =============================================================================
 
 
 # LDA
@@ -225,7 +233,11 @@ array([0.01508051, 0.01164488, 0.00910163, 0.00874188, 0.00870333])
 
 
 
-# mean rates
+# =============================================================================
+# =============================================================================
+# # # mean rates
+# =============================================================================
+# =============================================================================
 
 sns.set()
 ns_grid_code = np.array(((all_codes[grid_seed]['non-shuffled']['grid']['rate'])
@@ -257,6 +269,20 @@ sns.barplot(data=means_df, x= 'cell', y='mean_rate', hue='shuffling',
  # np.mean(all_codes[grid_seed]['non-shuffled']['grid']['rate'])/(np.sin(np.pi/4))*10
 
 
+# =============================================================================
+# =============================================================================
+# # Mean Rates
+# =============================================================================
+# =============================================================================
+
+
+
+# =============================================================================
+# =============================================================================
+# # Perceptron
+# =============================================================================
+# =============================================================================
+
 import copy
 data = []
 for grid_seed in all_codes:
@@ -287,8 +313,6 @@ for grid_seed in all_codes:
                     print(shuffling)
                     print(cell)
                     print(code)
-
-
 
 
 
@@ -370,10 +394,18 @@ plt.tight_layout()
 
 
 
+# =============================================================================
+# =============================================================================
+# # Perceptron
+# =============================================================================
+# =============================================================================
 
 
-
-'pearson r'
+# =============================================================================
+# =============================================================================
+# # 'pearson r'
+# =============================================================================
+# =============================================================================
 
 from scipy import stats
 from scipy.stats import pearsonr,  spearmanr
@@ -550,10 +582,18 @@ plt.tight_layout()
 
 plt.show()
 
+# =============================================================================
+# =============================================================================
+# # 'pearson r'
+# =============================================================================
+# =============================================================================
 
 
-
-'spearman rho'
+# =============================================================================
+# =============================================================================
+# # 'spearman rho'
+# =============================================================================
+# =============================================================================
 
 from scipy import stats
 from scipy.stats import pearsonr,  spearmanr
@@ -695,3 +735,8 @@ ax4.plot(ns_phase[0][0], ns_phase[0][1], 'k', linestyle=(0, (6, 2)), linewidth=3
 
 plt.tight_layout()
 
+# =============================================================================
+# =============================================================================
+# # 'spearman rho'
+# =============================================================================
+# =============================================================================
