@@ -27,7 +27,7 @@ n_grid = 20
 n_granule = 20
 
 fig = plt.figure(constrained_layout=True, figsize=(8.25,11+17/24))
-gs = fig.add_gridspec(8,12)
+gs = fig.add_gridspec(12,12)
 ax1 = fig.add_subplot(gs[0:4,0:6])
 ax1.eventplot(non_shuffled['75']['grid_spikes'][100][0:n_grid], linelengths=1, linewidth=linewidth, lineoffsets=range(1,n_grid+1))
 ax1.set_xlim(xlim)
@@ -36,7 +36,7 @@ ax1.vlines(x=theta_lines, ymin=-5, ymax=205, alpha=vline_alpha)
 ax1.set_ylim((0,n_grid+1))
 ax1.set_yticks(range(0,n_grid+1, 5))
 ax1.set_title("Spike times")
-ax2 = fig.add_subplot(gs[4:,0:6])
+ax2 = fig.add_subplot(gs[4:8,0:6])
 ax2.eventplot(non_shuffled['75']['granule_spikes'][100][0:n_granule], linelengths=1, linewidth=linewidth, lineoffsets=range(1,n_granule+1))
 ax2.set_xlim(xlim)
 ax2.set_ylabel("Granule Cell #")
@@ -64,7 +64,7 @@ grid_phase_code_y = grid_phase_code[4000:,0,0].reshape((200,20))
 grid_polar_code_x = grid_polar_code[:4000,0,0].reshape((200,20))
 grid_polar_code_y = grid_polar_code[4000:,0,0].reshape((200,20))
 
-colors = "Greys_r"
+colors = "Greys"
 ax3 = fig.add_subplot(gs[0:4,6])
 im3 = ax3.imshow(grid_rate_code_x[:n_grid,:], aspect="auto", cmap=colors, origin='lower', interpolation="none", extent=(0,20,0.5,n_grid+0.5))
 ax3.set_title("Rate Codex")
@@ -108,26 +108,26 @@ granule_phase_code_y = granule_phase_code[40000:,0,0].reshape((2000,20))
 granule_polar_code_x = granule_polar_code[:40000,0,0].reshape((2000,20))
 granule_polar_code_y = granule_polar_code[40000:,0,0].reshape((2000,20))
 
-ax9 = fig.add_subplot(gs[4:,6])
+ax9 = fig.add_subplot(gs[4:8,6])
 im9 = ax9.imshow(granule_rate_code_x[:n_granule,:], aspect="auto", cmap=colors, origin='lower', interpolation="none", extent=(0,20,0.5,n_granule+0.5))
 plt.colorbar(im9, ax=ax9, orientation="horizontal")
-ax10 = fig.add_subplot(gs[4:,7])
+ax10 = fig.add_subplot(gs[4:8,7])
 im10 = ax10.imshow(granule_rate_code_y[:n_granule,:], aspect="auto", cmap=colors, origin='lower', interpolation="none", extent=(0,20,0.5,n_granule+0.5))
 
 plt.colorbar(im10, ax=ax10, orientation="horizontal")
-ax11 = fig.add_subplot(gs[4:,8])
+ax11 = fig.add_subplot(gs[4:8,8])
 im11 = ax11.imshow(granule_phase_code_x[:n_granule,:], aspect="auto", cmap=colors, origin='lower', interpolation="none", extent=(0,20,0.5,n_granule+0.5))
 
 plt.colorbar(im11, ax=ax11, orientation="horizontal")
-ax12 = fig.add_subplot(gs[4:,9])
+ax12 = fig.add_subplot(gs[4:8,9])
 im12 = ax12.imshow(granule_phase_code_y[:n_granule,:], aspect="auto", cmap=colors, origin='lower', interpolation="none", extent=(0,20,0.5,n_granule+0.5))
 
 plt.colorbar(im12, ax=ax12, orientation="horizontal")
-ax13 = fig.add_subplot(gs[4:,10])
+ax13 = fig.add_subplot(gs[4:8,10])
 im13 = ax13.imshow(granule_polar_code_x[:n_granule,:], aspect="auto", cmap=colors, origin='lower', interpolation="none", extent=(0,20,0.5,n_granule+0.5))
 
 plt.colorbar(im13, ax=ax13, orientation="horizontal")
-ax14 = fig.add_subplot(gs[4:,11])
+ax14 = fig.add_subplot(gs[4:8,11])
 im14 = ax14.imshow(granule_polar_code_y[:n_granule,:], aspect="auto", cmap=colors, origin='lower', interpolation="none", extent=(0,20,0.5,n_granule+0.5))
 
 plt.colorbar(im14, ax=ax14, orientation="horizontal")
@@ -144,6 +144,8 @@ for axis in [ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12, ax13, ax14]:
     pass
 
 
+# ax15 is a placeholder for a perceptron schematic
+ax15 = fig.add_subplot(gs[8:12,:4])
 
 
 
