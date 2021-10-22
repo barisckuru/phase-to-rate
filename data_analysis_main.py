@@ -199,7 +199,7 @@ for cell in cells:
                 x = np.concatenate((x[:, cut:(cut+n_cell)], 
                                     x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
                 
-                pca = decomposition.SparsePCA(n_components=n_comp)
+                pca = decomposition.PCA(n_components=n_comp)
                 pca.fit_transform(x)
                 comp_ratio = pca.explained_variance_ratio_
                 ct +=1
@@ -210,6 +210,41 @@ plt.legend()
 plt.ylabel('Summed ratio')
 plt.xlabel('75 vs Trajectories')
 plt.title("Sum of explained varience of first 3 PCA components \n 1 time bin, 1 grid seed")   
+
+
+
+
+
+# sparse PCA
+
+
+plt.figure()
+for cell in cells:
+    if cell == 'grid':
+        n_cell = 200
+    elif cell == 'granule':
+        n_cell = 2000
+    for code in codes:
+        for shuffling in shufflings:
+            ratios_explained_3 = []
+            for compared_traj in range(len(trajectories)):
+                grid_rate_shuffled_1 = all_codes[seed][shuffling][cell][code][:,:,0]
+                grid_rate_shuffled_2 = all_codes[seed][shuffling][cell][code][:,:,compared_traj]
+                x = np.hstack((grid_rate_shuffled_1, grid_rate_shuffled_2)).T
+                cut = select_bin*n_cell
+                mid = int(x.shape[1]/2)
+                x = np.concatenate((x[:, cut:(cut+n_cell)], 
+                                    x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
+                
+                pca = decomposition.sparsePCA(n_components=n_comp)
+                pca.fit_transform(x)
+
+
+# dictionary learning and other dim reduction techniques to be tried
+
+
+
+
 
 
 
@@ -235,7 +270,7 @@ plt.title("Sum of explained varience of first 3 PCA components \n 1 time bin, 1 
 
 # =============================================================================
 # =============================================================================
-# # # mean rates
+# # # Mean Rates
 # =============================================================================
 # =============================================================================
 
