@@ -15,15 +15,21 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from sklearn import decomposition
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+import pickle
 
 trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
+
+# trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
+#                 71, 70, 69, 68, 67, 66, 65, 60]
+
 n_samples = 20
 grid_seeds = np.arange(1,11,1)
 
-grid_seeds = np.array([1])
+# grid_seeds = np.array([1])
 
-tuning = 'full'
+tuning = 'disinhibited'
 
 rate_learning_rate = 1e-4
 phase_learning_rate = 1e-3
@@ -104,22 +110,115 @@ for grid_seed in grid_seeds:
 # PCA
 
 seed = 1
-cell = 'grid'
-code = 'rate'
-shuffling = 'non-shuffled'
+cells = ['grid','granule']
+codes = ['rate','phase']
+shufflings = ['non-shuffled','shuffled']
 compared_traj = 16 # baseline traj is at 75 cm --> 0
+n_comp = 160
+select_bin = 5
+# comp_ratio = []
+ct = 0
+plt.figure()
+for cell in cells:
+    if cell == 'grid':
+        n_cell = 200
+    elif cell == 'granule':
+        n_cell = 2000
+    for code in codes:
+        for shuffling in shufflings:
+            x = all_codes[seed][shuffling][cell][code]
+            x = x.reshape(x.shape[0], x.shape[1]*x.shape[2]).T
+            cut = select_bin*n_cell
+            mid = int(x.shape[1]/2)
+            x = np.concatenate((x[:, cut:(cut+n_cell)], 
+                                x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
+            
+            pca = decomposition.PCA(n_components=n_comp)
+            pca.fit(x)
+            comp_ratio = pca.explained_variance_ratio_
+            plt.plot(comp_ratio, label = f'{cell} {code} {shuffling}')
+            ct +=1
+plt.legend()        
+plt.ylabel('Ratio (0-1)')
+plt.xlabel('Principal Component')
+plt.title("All trajectories (75-15cm) pooled explained varience \n 1 time bin, 1 grid seed")   
 
-n_comp = 5
+for compared_traj in range(len(trajectories)):
+    grid_rate_shuffled_1 = all_codes[seed][shuffling][cell][code][:,:,0]
+    grid_rate_shuffled_2 = all_codes[seed][shuffling][cell][code][:,:,compared_traj]
+    x = np.hstack((grid_rate_shuffled_1, grid_rate_shuffled_2)).T
+    cut = select_bin*n_cell
+    mid = int(x.shape[1]/2)
+    x = np.concatenate((x[:, cut:(cut+n_cell)], 
+                        x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
+    
+    pca = decomposition.PCA(n_components=n_comp)
+    pca.fit(x)
+    comp_ratio = pca.explained_variance_ratio_
+    # ratios_explained_5.append(sum(comp_ratio[:5]))
+    
+plt.figure()
+plt.plot(comp_ratio, labels = 'shuffled')
+# plt.xticks(np.arange(0,16), trajectories[1:])
+plt.ylabel('Ratio (0-1)')
+plt.xlabel('75 vs trajectories')
+plt.title(f" \n {cell} {code} {shuffling} \n 1 time bin, 1 grid seed")
 
-# grid
+    
+plt.figure()
+plt.plot(ratios_explained_5[1:])
+plt.xticks(np.arange(0,16), trajectories[1:])
+plt.ylabel('Ratio (0-1)')
+plt.xlabel('75 vs trajectories')
+plt.title(f"Sum of explained ratio of first 5 component PCA \n {cell} {code} {shuffling} \n 1 time bin, 1 grid seed")
 
-grid_rate_shuffled_1 = all_codes[seed][shuffling][cell][code][:,:,0]
-grid_rate_shuffled_2 = all_codes[seed][shuffling][cell][code][:,:,compared_traj]
-x = np.hstack((grid_rate_shuffled_1, grid_rate_shuffled_2)).T
+
+x = all_codes[seed][shuffling][cell][code]
+x = x.reshape(x.shape[0], x.shape[1]*x.shape[2]).T
+cut = select_bin*n_cell
+mid = int(x.shape[1]/2)
+x = np.concatenate((x[:, cut:(cut+n_cell)], 
+                    x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
 
 pca = decomposition.PCA(n_components=n_comp)
 pca.fit(x)
-pca.explained_variance_ratio_
+comp_ratio = pca.explained_variance_ratio_
+comp_ratio[:5]
+
+
+
+grid rate non-shuffled
+array([0.09917002, 0.06529963, 0.03134775, 0.01725261, 0.01666521])
+grid rate shuffled
+array([0.09917002, 0.06529963, 0.03134775, 0.01725261, 0.01666521])
+
+grid phase non-shuffled
+array([0.0358334 , 0.02821797, 0.01330059, 0.01174804, 0.01150775])
+grid phase shuffled
+array([0.01571848, 0.01227663, 0.01190683, 0.01140895, 0.01126554])
+
+
+
+granule rate non-shuffled
+array([0.02898133, 0.01937996, 0.01198025, 0.01116137, 0.01085838])
+granule rate shuffled
+array([0.01890724, 0.01418187, 0.01050521, 0.01046707, 0.01027766])
+
+granule phase non-shuffled
+array([0.02487623, 0.01666365, 0.010095  , 0.00977518, 0.00932536])
+granule phase shuffled
+array([0.01508051, 0.01164488, 0.00910163, 0.00874188, 0.00870333])
+
+
+
+
+
+# LDA
+
+# labels = np.array(20*[1]+20*[0])
+# lda = LDA()
+# lda.fit(x, labels)
+# lda.explained_variance_ratio_
 
 
 
@@ -127,6 +226,8 @@ pca.explained_variance_ratio_
 
 
 # mean rates
+
+sns.set()
 ns_grid_code = np.array(((all_codes[grid_seed]['non-shuffled']['grid']['rate'])
                 /(np.sin(np.pi/4))*10).mean(axis=0).reshape(340))
 s_grid_code = np.array(((all_codes[grid_seed]['shuffled']['grid']['rate'])
@@ -187,6 +288,20 @@ for grid_seed in all_codes:
                     print(cell)
                     print(code)
 
+
+
+
+
+
+# load pickled perceptron results
+
+# data = pickle.load( open( "75-15_full_perceptron_speed.pkl", "rb" ) )
+
+# drop rows for 45 cm and 30 cm for perceptron figures
+# i = df[(df.distance==45) | (df.distance==60)].index
+# df = df.drop(i)
+
+
 df = pd.DataFrame(data,
                   columns=['distance', 'speed', 'threshold_crossing',
                            'trajectories', 'grid_seed',
@@ -201,13 +316,8 @@ granule_phase = df.groupby(['cell_type', 'code_type']).get_group(('granule', 'ph
 
 
 
-#here!
-
-
-
-import pickle 
-file_name = "75-15_nofb_perceptron_speed.pkl"
-
+'pickle perceptron results'
+file_name = "75-60_"+str(tuning)+"_perceptron_speed.pkl"
 open_file = open(file_name, "wb")
 pickle.dump(data, open_file)
 open_file.close()
