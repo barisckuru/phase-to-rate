@@ -354,7 +354,7 @@ for grid_seed in all_codes:
 
 # load pickled perceptron results
 
-# data = pickle.load( open( "75-15_full_perceptron_speed.pkl", "rb" ) )
+# data = pickle.load( open( "75-15_disinhibited_perceptron_speed.pkl", "rb" ) )
 
 # drop rows for 45 cm and 30 cm for perceptron figures
 # i = df[(df.distance==45) | (df.distance==60)].index
