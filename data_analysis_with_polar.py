@@ -37,7 +37,7 @@ grid_seeds = np.arange(1,11,1)
 
 # grid_seeds = np.array([1])
 
-tuning = 'no-feedback'
+tuning = 'full'
 
 rate_learning_rate = 1e-4
 polar_learning_rate = 1e-4
@@ -158,8 +158,8 @@ for grid_seed in all_codes:
 # data = pickle.load( open( "75-15_disinhibited_perceptron_speed.pkl", "rb" ) )
 
 # drop rows for 45 cm and 30 cm for perceptron figures
-# i = df[(df.distance==45) | (df.distance==60)].index
-# df = df.drop(i)
+i = df[(df.distance==45) | (df.distance==60)].index
+df = df.drop(i)
 
 
 df = pd.DataFrame(data,
@@ -188,7 +188,7 @@ import copy
 data1 = copy.deepcopy(data)
 
 
-fig1, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 2, sharex="col")
+fig1, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 3, sharex="col")
 
 fig1.suptitle(
     "Perceptron learning speed \n  "

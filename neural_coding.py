@@ -251,4 +251,8 @@ def _collect_spikes(
 #                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 # for i in np.arange(1,11,1):
 #     print(i)
-#     _collect_spikes(i, 'shuffled', 2000, trajectories, 'disinhibited')
+#     _collect_spikes(i, 'non-shuffled', 2000, trajectories, 'no-feedforward')
+    
+# for i in np.arange(1,11,1):
+#     print(i)
+#     _collect_spikes(i, 'shuffled', 2000, trajectories, 'no-feedforward')

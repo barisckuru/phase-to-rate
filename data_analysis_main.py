@@ -34,11 +34,11 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 #                 71, 70, 69, 68, 67, 66, 65, 60]
 
 n_samples = 20
-grid_seeds = np.arange(1,11,1)
+# grid_seeds = np.arange(1,11,1)
 
-# grid_seeds = np.array([1])
+grid_seeds = np.array([1])
 
-tuning = 'disinhibited'
+tuning = 'full'
 
 rate_learning_rate = 1e-4
 phase_learning_rate = 1e-3
@@ -158,7 +158,7 @@ for cell in cells:
                                 x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
             
             pca = decomposition.PCA(n_components=n_comp)
-            pca.fit(x)
+            components = pca.fit(x)
             comp_ratio = pca.explained_variance_ratio_
             plt.plot(comp_ratio, label = f'{cell} {code} {shuffling}')
             ct +=1
@@ -246,6 +246,117 @@ for cell in cells:
 
 
 
+
+
+
+
+# measuring the distance after compression via PCA
+# find the PCs for each trajectory and compress with PCA
+# check for the distance between componenets
+# you can directly automatize to see the correlation between trajectory pairs
+seed = 1
+cells = ['grid', 'granule']
+codes = ['rate']
+shufflings = ['non-shuffled','shuffled']
+
+trajectories = [75, 60, 15]
+n_comp = 20
+select_bin = 5
+# comp_ratio = []
+ct = 0
+components = []
+distances = []
+
+# plt.figure()
+for cell in cells:
+    if cell == 'grid':
+        n_cell = 200
+    elif cell == 'granule':
+        n_cell = 2000
+    for code in codes:
+        for shuffling in shufflings:
+            ratios_explained_3 = []
+            for compared_traj in range(len(trajectories)):
+                base_x = all_codes[seed][shuffling][cell][code][:,:,0].T
+                x = all_codes[seed][shuffling][cell][code][:,:,compared_traj].T
+                cut = select_bin*n_cell
+                mid = int(x.shape[1]/2)
+                x = np.concatenate((x[:, cut:(cut+n_cell)], 
+                                    x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
+                
+                base_x = np.concatenate((base_x[:, cut:(cut+n_cell)], 
+                                         base_x[:, (mid+cut):(mid+cut+n_cell)]), axis=1)
+                
+                pca = decomposition.PCA(n_components=n_comp)
+                
+                base_pcs = pca.fit_transform(base_x)
+                
+                pca = decomposition.PCA(n_components=n_comp)
+                pcs = pca.fit_transform(x)
+                
+                dist = distance.cdist(base_pcs, pcs, 'correlation')
+                distances.append(dist[np.triu_indices(20, k=1)])
+                
+                components.append(pcs)
+
+arr = np.array(distances).T.flatten()
+
+trajectory = 760*['75 vs 75', '75 vs 60', '75 vs 15']
+shuffling =  380*(3*['non-shuffled']+3*['shuffled'])
+cell =  190*(6*['grid']+6*['granule'])
+
+
+distances_df = np.stack((arr, shuffling, cell, trajectory), axis=1)
+distances_df = pd.DataFrame(distances_df, columns=['distances', 'shuffling', 'cell', 'trajectory'])
+distances_df['distances'] = distances_df['distances'].astype('float')
+
+# sns.catplot(col='trajectory', data=distances_df, x= 'cell', y='distances', hue='shuffling',
+#             ci='sd')
+
+sns.catplot(col='trajectory', data=distances_df, x= 'cell', y='distances', hue='shuffling',
+            ci='sd', kind='bar')
+
+plt.suptitle(f'Correlation Distance between PCs \n {n_comp} PCs, 20 samples per trajectory \n 1 time bin, 1 grid seed')
+plt.tight_layout()
+
+dista = distance.cdist(base_pcs, base_pcs, 'correlation')
+
+
+
+
+
+
+
+sns.reset_orig()
+fig = plt.figure()
+ax = fig.add_subplot()
+t = np.arange(1,18)
+for comp in components:
+    ax.scatter(comp[:3, :], comp[1, :], c=t, cmap='Red')
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.scatter(components[0][:,0], components[0][:,1],components[0][:,2], marker='o', color='blue', label='75cm')
+ax.scatter(components[14][:,0], components[14][:,1],components[14][:,2], marker='*', color='green', label='60cm')
+ax.scatter(components[16][:,0], components[16][:,1],components[16][:,2], marker='v', color='red', label='15cm')
+
+plt.title('First 3 PCs \n 20 samples per trajectory, 1 time bin, 1 grid seed')
+plt.legend()
+
+
+
+
+distances_75 = distance.cdist(components[0], components[0], 'euclidean')
+distances_75 = distances[np.triu_indices(20, k=1)]
+
+
+distances_60 = distance.cdist(components[0], components[0], 'euclidean')
+distances_60 = distances[np.triu_indices(20, k=1)]
+
+distances_15 = distance.cdist(components[0], components[0], 'euclidean')
+distances_15 = distances[np.triu_indices(20, k=1)]
+
+dist_data = np.concatenate((distances_75, distances_60, distances_15))
 
 
 
