@@ -7,7 +7,7 @@ Created on Mon Oct 25 10:21:07 2021
 """
 
 from neural_coding import load_spikes, rate_n_phase
-from perceptron import run_perceptron
+from perceptron_new import run_perceptron
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -38,11 +38,6 @@ grid_seeds = np.arange(1,11,1)
 # grid_seeds = np.array([1])
 
 tuning = 'full'
-
-rate_learning_rate = 1e-4
-polar_learning_rate = 1e-4
-phase_learning_rate = 1e-3
-n_iter = 2000
 
 all_codes = {}
 for grid_seed in grid_seeds:
@@ -118,6 +113,18 @@ for grid_seed in grid_seeds:
                       'polar': s_granule_polar_code}
     
 
+
+
+# =============================================================================
+# Perceptron 
+# =============================================================================
+
+rate_learning_rate = 1e-4
+polar_learning_rate = 1e-4
+phase_learning_rate = 1e-4
+n_iter = 2000
+optimizer='Adam'
+
 data = []
 for grid_seed in all_codes:
     for shuffling in all_codes[grid_seed]:
@@ -139,6 +146,7 @@ for grid_seed in all_codes:
                     th_cross, train_loss = run_perceptron(
                         perceptron_input,
                         grid_seed,
+                        optimizer=optimizer,
                         learning_rate=learning_rate,
                         n_iter=n_iter)
                     traj = trajectories[traj_idx+1]
@@ -152,21 +160,41 @@ for grid_seed in all_codes:
                     print(cell)
                     print(code)
 
-    
+
+
  # load pickled perceptron results
 
 # data = pickle.load( open( "75-15_disinhibited_perceptron_speed.pkl", "rb" ) )
 
 # drop rows for 45 cm and 30 cm for perceptron figures
-i = df[(df.distance==45) | (df.distance==60)].index
-df = df.drop(i)
 
+
+
+    
+# for data_sing in add_data:
+#     data_sing[4] = 1
+#     data_sing[5] = 'shuffled'
+#     data_sing[6] = 'grid'
+#     data_sing[7] = 'phase'
+    
+# data11 = copy.deepcopy(data)
+
+# data[16:32] = add_data
+
+
+'pickle perceptron results'
+file_name = "75-15_"+str(tuning)+"_perceptron_speed_SparseAdam.pkl"
+open_file = open(file_name, "wb")
+pickle.dump(data, open_file)
+open_file.close()
 
 df = pd.DataFrame(data,
                   columns=['distance', 'speed', 'threshold_crossing',
                            'trajectories', 'grid_seed',
                            'shuffling', 'cell_type', 'code_type', 'learning_rate'])
 
+i = df[(df.distance==45) | (df.distance==60)].index
+df = df.drop(i)
 
 grid_rate = df.groupby(['cell_type', 'code_type']).get_group(('grid', 'rate'))
 grid_phase = df.groupby(['cell_type', 'code_type']).get_group(('grid', 'phase'))
@@ -176,14 +204,6 @@ granule_phase = df.groupby(['cell_type', 'code_type']).get_group(('granule', 'ph
 granule_polar = df.groupby(['cell_type', 'code_type']).get_group(('granule', 'polar'))
 
 
-
-
-'pickle perceptron results'
-file_name = "75-15_"+str(tuning)+"_perceptron_speed_polar_inc.pkl"
-open_file = open(file_name, "wb")
-pickle.dump(data, open_file)
-open_file.close()
-
 import copy
 data1 = copy.deepcopy(data)
 
@@ -191,7 +211,7 @@ data1 = copy.deepcopy(data)
 fig1, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 3, sharex="col")
 
 fig1.suptitle(
-    "Perceptron learning speed \n  "
+    "Perceptron learning speed "+ str(tuning)+" network\n  "
     + str(n_samples)
     + " samples per trajectory, "
     + str(len(grid_seeds))

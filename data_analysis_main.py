@@ -17,6 +17,7 @@ import seaborn as sns
 from sklearn import decomposition
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 import pickle
+from scipy.spatial import distance
 
 
 
@@ -39,10 +40,6 @@ n_samples = 20
 grid_seeds = np.array([1])
 
 tuning = 'full'
-
-rate_learning_rate = 1e-4
-phase_learning_rate = 1e-3
-n_iter = 2000
 
 all_codes = {}
 for grid_seed in grid_seeds:
@@ -267,7 +264,12 @@ ct = 0
 components = []
 distances = []
 
+fig2, axes = plt.subplots(3, 4)
+fig2.suptitle(
+    "PCA Correlation Matrix")
+
 # plt.figure()
+ct = 0
 for cell in cells:
     if cell == 'grid':
         n_cell = 200
@@ -294,32 +296,44 @@ for cell in cells:
                 pca = decomposition.PCA(n_components=n_comp)
                 pcs = pca.fit_transform(x)
                 
-                dist = distance.cdist(base_pcs, pcs, 'correlation')
-                distances.append(dist[np.triu_indices(20, k=1)])
+                all_pcs = np.vstack((base_pcs, pcs))
+                
+                dist = distance.cdist(all_pcs, all_pcs, 'euclidean')
+                ax = fig2.axes[ct]
+                ax.set_title(f'75-{trajectories[compared_traj]} {cell} {code} {shuffling}')
+                ax.imshow(dist, cmap='gray')
+                ct +=1
+                # distances.append(dist[np.triu_indices(20, k=1)])
+                distances.append(dist)
                 
                 components.append(pcs)
+plt.tight_layout()               
+                
+                
+                
+                
 
-arr = np.array(distances).T.flatten()
+# arr = np.array(distances).T.flatten()
 
-trajectory = 760*['75 vs 75', '75 vs 60', '75 vs 15']
-shuffling =  380*(3*['non-shuffled']+3*['shuffled'])
-cell =  190*(6*['grid']+6*['granule'])
+# trajectory = 760*['75 vs 75', '75 vs 60', '75 vs 15']
+# shuffling =  380*(3*['non-shuffled']+3*['shuffled'])
+# cell =  190*(6*['grid']+6*['granule'])
 
 
-distances_df = np.stack((arr, shuffling, cell, trajectory), axis=1)
-distances_df = pd.DataFrame(distances_df, columns=['distances', 'shuffling', 'cell', 'trajectory'])
-distances_df['distances'] = distances_df['distances'].astype('float')
+# distances_df = np.stack((arr, shuffling, cell, trajectory), axis=1)
+# distances_df = pd.DataFrame(distances_df, columns=['distances', 'shuffling', 'cell', 'trajectory'])
+# distances_df['distances'] = distances_df['distances'].astype('float')
+
+# # sns.catplot(col='trajectory', data=distances_df, x= 'cell', y='distances', hue='shuffling',
+# #             ci='sd')
 
 # sns.catplot(col='trajectory', data=distances_df, x= 'cell', y='distances', hue='shuffling',
-#             ci='sd')
+#             ci='sd', kind='bar')
 
-sns.catplot(col='trajectory', data=distances_df, x= 'cell', y='distances', hue='shuffling',
-            ci='sd', kind='bar')
+# plt.suptitle(f'Correlation Distance between PCs \n {n_comp} PCs, 20 samples per trajectory \n 1 time bin, 1 grid seed')
+# plt.tight_layout()
 
-plt.suptitle(f'Correlation Distance between PCs \n {n_comp} PCs, 20 samples per trajectory \n 1 time bin, 1 grid seed')
-plt.tight_layout()
-
-dista = distance.cdist(base_pcs, base_pcs, 'correlation')
+# dista = distance.cdist(base_pcs, base_pcs, 'correlation')
 
 
 
@@ -327,36 +341,36 @@ dista = distance.cdist(base_pcs, base_pcs, 'correlation')
 
 
 
-sns.reset_orig()
-fig = plt.figure()
-ax = fig.add_subplot()
-t = np.arange(1,18)
-for comp in components:
-    ax.scatter(comp[:3, :], comp[1, :], c=t, cmap='Red')
+# sns.reset_orig()
+# fig = plt.figure()
+# ax = fig.add_subplot()
+# t = np.arange(1,18)
+# for comp in components:
+#     ax.scatter(comp[:3, :], comp[1, :], c=t, cmap='Red')
 
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.scatter(components[0][:,0], components[0][:,1],components[0][:,2], marker='o', color='blue', label='75cm')
-ax.scatter(components[14][:,0], components[14][:,1],components[14][:,2], marker='*', color='green', label='60cm')
-ax.scatter(components[16][:,0], components[16][:,1],components[16][:,2], marker='v', color='red', label='15cm')
+# fig = plt.figure()
+# ax = fig.add_subplot(projection='3d')
+# ax.scatter(components[0][:,0], components[0][:,1],components[0][:,2], marker='o', color='blue', label='75cm')
+# ax.scatter(components[14][:,0], components[14][:,1],components[14][:,2], marker='*', color='green', label='60cm')
+# ax.scatter(components[16][:,0], components[16][:,1],components[16][:,2], marker='v', color='red', label='15cm')
 
-plt.title('First 3 PCs \n 20 samples per trajectory, 1 time bin, 1 grid seed')
-plt.legend()
-
-
+# plt.title('First 3 PCs \n 20 samples per trajectory, 1 time bin, 1 grid seed')
+# plt.legend()
 
 
-distances_75 = distance.cdist(components[0], components[0], 'euclidean')
-distances_75 = distances[np.triu_indices(20, k=1)]
 
 
-distances_60 = distance.cdist(components[0], components[0], 'euclidean')
-distances_60 = distances[np.triu_indices(20, k=1)]
+# distances_75 = distance.cdist(components[0], components[0], 'euclidean')
+# distances_75 = distances[np.triu_indices(20, k=1)]
 
-distances_15 = distance.cdist(components[0], components[0], 'euclidean')
-distances_15 = distances[np.triu_indices(20, k=1)]
 
-dist_data = np.concatenate((distances_75, distances_60, distances_15))
+# distances_60 = distance.cdist(components[0], components[0], 'euclidean')
+# distances_60 = distances[np.triu_indices(20, k=1)]
+
+# distances_15 = distance.cdist(components[0], components[0], 'euclidean')
+# distances_15 = distances[np.triu_indices(20, k=1)]
+
+# dist_data = np.concatenate((distances_75, distances_60, distances_15))
 
 
 
@@ -428,6 +442,10 @@ sns.barplot(data=means_df, x= 'cell', y='mean_rate', hue='shuffling',
 # # Perceptron
 # =============================================================================
 # =============================================================================
+rate_learning_rate = 1e-4
+phase_learning_rate = 1e-3
+n_iter = 2000
+optimizer='SparseAdam'
 
 import copy
 data = []
@@ -447,6 +465,7 @@ for grid_seed in all_codes:
                     th_cross, train_loss = run_perceptron(
                         perceptron_input,
                         grid_seed,
+                        optimizer=optimizer,
                         learning_rate=learning_rate,
                         n_iter=n_iter)
                     traj = trajectories[traj_idx+1]
@@ -459,8 +478,34 @@ for grid_seed in all_codes:
                     print(shuffling)
                     print(cell)
                     print(code)
+    
 
 
+add_data = []
+
+for traj_idx in range(len(trajectories)-1):
+    n_iter = 10000
+    input_code = all_codes[1]['shuffled']['grid']['phase']
+    perceptron_input = np.hstack((input_code[:, :, 0], input_code[:, :, traj_idx + 1]))
+    th_cross, train_loss = run_perceptron(
+        perceptron_input,
+        grid_seed,
+        learning_rate=learning_rate,
+        n_iter=n_iter)
+    traj = trajectories[traj_idx+1]
+    idx = 75 - traj
+    comp_trajectories = str(75)+'_'+str(traj)
+    data_sing = [idx, 1/th_cross, th_cross, comp_trajectories, grid_seed, shuffling, cell, code, learning_rate]
+    add_data.append(copy.deepcopy(data_sing))
+    print(traj)
+    print(grid_seed)
+    print(shuffling)
+    print(cell)
+    print(code)
+
+
+
+    
 
 
 # load pickled perceptron results

@@ -277,7 +277,6 @@ def _randomize_grid_spikes(arr, bin_size_ms, time_ms=2000):
         randomized_grid = np.append(randomized_grid, np.array(spikes_ms))
     return np.sort(randomized_grid)
 
-
 def _overall(dist_trajs, rate_trajs, shift_deg, T,
              n_grid, n_traj, rate_scale, speed_cm, dur_s):
     """
