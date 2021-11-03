@@ -8,6 +8,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import grid_model
 import matplotlib.gridspec as gridspec
+from neo.core import AnalogSignal
+import quantities as pq
+from elephant import spike_train_generation as stg
+from scipy import ndimage
+import seaborn as sns
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
@@ -108,7 +113,7 @@ def precession_spikes(overall, dur_s=5, n_sim=1000, T=0.1,
                                                   refractory_period = (0.001*pq.s),
                                                   as_array=True)*1000
         if shuffle is True:
-            train = grid._randomize_grid_spikes(train, 100, time_ms=dur_ms)/1000
+            train = grid_model._randomize_grid_spikes(train, 100, time_ms=dur_ms)/1000
         else:
             train = train/1000
         for j, time in enumerate(times):
@@ -131,18 +136,18 @@ def precession_spikes(overall, dur_s=5, n_sim=1000, T=0.1,
     return spike_phases
 
 
-grid_rate = grid._grid_maker(spacing,
+grid_rate = grid_model._grid_maker(spacing,
                              orientation, pos_peak).reshape(200, 200, 1)
 
 grid_rates = np.append(grid_rate, grid_rate, axis=2)
 spacings = [spacing, spacing]
-grid_dist = grid._rate2dist(grid_rates, spacings)[:, :, 0].reshape(200, 200, 1)
+grid_dist = grid_model._rate2dist(grid_rates, spacings)[:, :, 0].reshape(200, 200, 1)
 trajs = np.array([50])
-dist_trajs = grid._draw_traj(grid_dist, 1, trajs, dur_ms=5000)
-rate_trajs = grid._draw_traj(grid_rate, 1, trajs, dur_ms=5000)
-rate_trajs, rate_t_arr = grid._interp(rate_trajs, 5, new_dt_s=0.002)
+dist_trajs = grid_model._draw_traj(grid_dist, 1, trajs, dur_ms=5000)
+rate_trajs = grid_model._draw_traj(grid_rate, 1, trajs, dur_ms=5000)
+rate_trajs, rate_t_arr = grid_model._interp(rate_trajs, 5, new_dt_s=0.002)
 
-grid_overall = grid._overall(dist_trajs,
+grid_overall = grid_model._overall(dist_trajs,
                              rate_trajs, 180, 0.1, 1, 1, 5, 20, 5)[0, :, 0]
 spike_phases = precession_spikes(grid_overall, shuffle=shuffle)
 
