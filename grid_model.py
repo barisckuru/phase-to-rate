@@ -6,8 +6,6 @@ Created on Thu Sep  2 13:41:31 2021
 @author: baris
 """
 
-
-
 import numpy as np
 import random
 from scipy import ndimage
@@ -17,8 +15,6 @@ from scipy import interpolate
 from neo.core import AnalogSignal
 import quantities as pq
 from elephant import spike_train_generation as stg
-import copy
-import pdb
 
 
 def _grid_maker(spacing, orientation, pos_peak,
@@ -355,9 +351,6 @@ def _spike_generator(
     ----------
     shuffle : str
         option to shuffle phases of grid cells
-    diff_seed : Boolean
-        option to decide seeding inh poiss function
-        with same or diff seeds.
     dt_s: float
         dt of the array to generate spikes
         array[1] = dur_s/dt_s
@@ -455,7 +448,8 @@ def grid_simulate(
         Scale the firing rate of grid cells
         The default is 5.
     large_output : Boolean
-        Should be False during normal usage. Set to True to return extended results.
+        Should be False during normal usage.
+        Set to True to return extended results.
 
     Returns
     -------
@@ -504,5 +498,7 @@ def grid_simulate(
     else:
         return grid_spikes, spacings
 
+
 if __name__ == '__main__':
-    test_grids, _ = grid_simulate([75], 2000, 1, np.array([150,151]), "non-shuffled")
+    test_grids, _ = grid_simulate([75], 2000, 1,
+                                  np.array([150, 151]), "non-shuffled")
