@@ -111,6 +111,11 @@ with shelve.open(shelve_loc) as storage:
 
         compare = storage['grid_spikes'][k1][k2][0] == grid_spikes[k1][k2][0]
         if not compare.all():
+            print(f"PID: {os.getpid()}")
+            print(f"Shelve Location: {shelve_loc}")
+            print(f"Stored grid spikes example: {storage['grid_spikes'][k1][k2][0]}")
+            print(f"New grid spikes example: {grid_spikes[k1][k2][0]}")
+            print(f"Comparison array: {compare}")
             raise ValueError("grid_spikes on file not equal simulated grid_spikes. Check storage integrity!")
     # If grid spikes do not already exist, write them to file
     else:
@@ -120,16 +125,18 @@ with shelve.open(shelve_loc) as storage:
     # Create granule_spikes dict only if it does not already exist
     if not "granule_spikes" in storage.keys():
         storage["granule_spikes"] = {traj:{} for traj in trajectories}
-        
+
+print(f"PID: {os.getpid()} Initial shelving done.")
+
 # pdb.set_trace()
 for traj in trajectories:
     for poisson_seed in poisson_seeds:
         # Skip if the poisson seed already exists on file
         with shelve.open(shelve_loc) as storage:
             if poisson_seed in storage["granule_spikes"][traj].keys():
-                print(f"Poisson seed {poisson_seed} already on file! Skipped.")
+                print(f"PID: {os.getpid()} Poisson seed {poisson_seed} already on file! Skipped.")
                 continue
-        print(f"Current poisson seed: {poisson_seed}")
+        print(f"PID: {os.getpid()} Current poisson seed: {poisson_seed}")
         granule_spikes_poiss = granule_simulate(
             grid_spikes[traj][poisson_seed],
             dur_ms=dur_ms,
@@ -144,4 +151,4 @@ for traj in trajectories:
 
             
 
-print("seed " + str(grid_seed) + " completed")
+print(f"PID: {os.getpid()} seed {grid_seed} completed")
