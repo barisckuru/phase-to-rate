@@ -180,7 +180,6 @@ def load_spikes(path, cell_type, trajectories, n_samples):
     storage = shelve.open(path)
     spikes = {}
     for traj in trajectories:
-        print(traj)
         requested_spikes = []
         traj_key = str(traj)
         poisson_seeds = storage[traj_key]["parameters"]["poisson_seeds"]

@@ -6,8 +6,6 @@ Created on Thu Sep  2 13:41:31 2021
 @author: baris
 """
 
-
-
 import numpy as np
 import random
 from scipy import ndimage
@@ -17,8 +15,6 @@ from scipy import interpolate
 from neo.core import AnalogSignal
 import quantities as pq
 from elephant import spike_train_generation as stg
-import copy
-import pdb
 
 
 def _grid_maker(spacing, orientation, pos_peak,
@@ -281,7 +277,6 @@ def _randomize_grid_spikes(arr, bin_size_ms, time_ms=2000):
         randomized_grid = np.append(randomized_grid, np.array(spikes_ms))
     return np.sort(randomized_grid)
 
-
 def _overall(dist_trajs, rate_trajs, shift_deg, T,
              n_grid, n_traj, rate_scale, speed_cm, dur_s):
     """
@@ -341,78 +336,6 @@ def _overall(dist_trajs, rate_trajs, shift_deg, T,
     return overall
 
 
-# 'depreciated'
-# def _spike_generator(
-#     arr,
-#     trajs,
-#     dur_s,
-#     shuffle,
-#     diff_seed=False,
-#     poisson_seed=0,
-#     dt_s=0.025,
-#     dur_ms=2000,
-# ):
-#     """Generate spikes from a seeded inhomogeneous Poisson function.
-
-#     Parameters
-#     ----------
-#     shuffle : str
-#         option to shuffle phases of grid cells
-#     diff_seed : Boolean
-#         option to decide seeding inh poiss function
-#         with same or diff seeds.
-
-#     Returns
-#     -------
-#     Spike times in miliseconds
-#     """
-#     n_traj = len(trajs)
-#     # length of the trajectory that mouse went
-#     np.random.seed(poiss_seed)
-#     n_cells = arr.shape[0]
-#     if shuffle == 'shuffled':
-#         shuffled = True
-#     elif shuffle == 'non-shuffled':
-#         shuffled = False
-#     else:
-#         raise ValueError('Shuffling is not defined correctly')
-
-#     # spi_arr = np.zeros((n_traj, n_cells), dtype=np.ndarray)
-    
-#     spikes = {}
-    
-#     for grid_idc in range(n_cells):
-#         for i in range(n_traj):
-#             if diff_seed is True:
-#                 np.random.seed(poiss_seed + grid_idc + (5 * i))
-#             elif diff_seed is False:
-#                 np.random.seed(poiss_seed + grid_idc)
-
-#             rate_profile = arr[grid_idc, :, i]
-#             asig = AnalogSignal(
-#                 rate_profile,
-#                 units=1 * pq.Hz,
-#                 t_start=0 * pq.s,
-#                 t_stop=dur_s * pq.s,
-#                 sampling_period=dt_s * pq.s,
-#                 sampling_interval=dt_s * pq.s,
-#             )
-#             curr_train = (
-#                 stg.inhomogeneous_poisson_process(
-#                     asig, refractory_period=0.001 * pq.s, as_array=True
-#                 )
-#                 * 1000
-#             )
-#             if shuffled is True:
-#                 curr_train = _randomize_grid_spikes(curr_train,
-#                                                     100, time_ms=dur_ms)
-                
-#             spikes[trajs[i]] = np.array(curr_train)
-#     #         spi_arr[i, grid_idc] = np.array(curr_train)  # time conv to ms
-#     # spi_arr = [[cell for cell in traj] for traj in spi_arr]
-#     return spikes
-
-
 def _spike_generator(
     arr,
     trajs,
@@ -427,9 +350,6 @@ def _spike_generator(
     ----------
     shuffle : str
         option to shuffle phases of grid cells
-    diff_seed : Boolean
-        option to decide seeding inh poiss function
-        with same or diff seeds.
     dt_s: float
         dt of the array to generate spikes
         array[1] = dur_s/dt_s
@@ -527,7 +447,8 @@ def grid_simulate(
         Scale the firing rate of grid cells
         The default is 5.
     large_output : Boolean
-        Should be False during normal usage. Set to True to return extended results.
+        Should be False during normal usage.
+        Set to True to return extended results.
 
     Returns
     -------
@@ -576,5 +497,7 @@ def grid_simulate(
     else:
         return grid_spikes, spacings
 
+
 if __name__ == '__main__':
-    test_grids, _ = grid_simulate([75], 2000, 1, np.array([150,151]), "non-shuffled")
+    test_grids, _ = grid_simulate([75], 2000, 1,
+                                  np.array([150, 151]), "non-shuffled")
