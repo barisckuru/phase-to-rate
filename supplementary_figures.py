@@ -69,6 +69,38 @@ def spike2phase(spikes, trajectories, bin_size_ms = 100,
     return spike_phases
 
 
+
+
+
+all_codes[grid_seed] = {"shuffled": {}, "non-shuffled": {}}
+all_codes[grid_seed]["shuffled"] = {"grid": {}, "granule": {}}
+all_codes[grid_seed]["non-shuffled"] = {"grid": {}, "granule": {}}
+
+all_codes[grid_seed]['non-shuffled']['grid'] = {'rate': grid_rate_code,
+                  'phase': grid_phase_code}
+all_codes[grid_seed]['shuffled']['grid'] = {'rate': s_grid_rate_code,
+                  'phase': s_grid_phase_code}
+all_codes[grid_seed]['non-shuffled']['granule'] = {'rate': granule_rate_code,
+                  'phase': granule_phase_code}
+all_codes[grid_seed]['shuffled']['granule'] = {'rate': s_granule_rate_code,
+                  'phase': s_granule_phase_code}
+
+
+seed = 1
+codes = ['rate']
+shufflings = ['non-shuffled','shuffled']
+
+
+for grid_seed in all_codes:
+    r_input_code = all_codes[grid_seed][shuffling][cell][code]
+    
+    for shuffling in all_codes[grid_seed]:
+        for cell in all_codes[grid_seed][shuffling]:
+            for code in all_codes[grid_seed][shuffling][cell]:
+                for traj_idx in range(len(trajectories)):
+                    r_input_code = all_codes[grid_seed][shuffling][cell][code]
+
+
 grid_phases = spike2phase(grid_spikes, trajectories)
 granule_phases = spike2phase(granule_spikes, trajectories)
 
