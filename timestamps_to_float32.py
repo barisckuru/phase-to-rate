@@ -2,29 +2,39 @@
 """
 Convert time stamps to float32 dtype.
 """
+import shelve, os, fnmatch, sys
 
-path = r'E:\Dropbox\Dropbox\data\network_full\seed_0\grid-seed_trajectories_poisson-seeds_duration_shuffling_tuning_0_[60.0]_[10000000, 10000200, 1]_2000_non-shuffled_full'
+in_path = sys.argv[1]
+out_path = sys.argv[2]
 
-sh = shelve.open(path)
+for root, dirnames, filenames in os.walk(in_path):
+    # print(root)
+    for filename in fnmatch.filter(filenames, '*.dat'):
+        os.makedirs(out_path, exist_ok=True)
 
-new_shelve = {'grid_spikes': 
-              {traj: {ps:[] for ps in sh['grid_spikes'][traj].keys()}
-               for traj in sh['grid_spikes'].keys()},
-              'granule_spikes': 
-              {traj: {ps:[] for ps in sh['granule_spikes'][traj].keys()}
-               for traj in sh['granule_spikes'].keys()}}
+        out_shelve_path = os.path.join(out_path, filename)
+        curr_file_path = os.path.join(root, filename)
+        assert os.path.isfile(curr_file_path)
+        print(curr_file_path)
+        with shelve.open(curr_file_path) as sh:
 
-for ct in ['grid_spikes', 'granule_spikes']:
-    for traj in sh[ct].keys():
-        for ps in sh[ct][traj].keys():
-            for idx, ts in enumerate(sh[ct][traj][ps]):
-                new_shelve[ct][traj][ps].append(sh[ct][traj][ps][idx].astype(np.float32))
+            print(list(sh.keys()))
+            new_shelve = {'grid_spikes': 
+                          {traj: {ps:[] for ps in sh['grid_spikes'][traj].keys()}
+                           for traj in sh['grid_spikes'].keys()},
+                          'granule_spikes': 
+                          {traj: {ps:[] for ps in sh['granule_spikes'][traj].keys()}
+                           for traj in sh['granule_spikes'].keys()}}
+            
+            for ct in ['grid_spikes', 'granule_spikes']:
+                for traj in sh[ct].keys():
+                    for ps in sh[ct][traj].keys():
+                        for idx, ts in enumerate(sh[ct][traj][ps]):
+                            new_shelve[ct][traj][ps].append(sh[ct][traj][ps][idx].astype(np.float32))
+                            
+            with shelve.open(out_shelve_path) as new_file:
+                new_file = shelve.open(out_shelve_path)
                 
-new_file = shelve.open(r'E:\Dropbox\Dropbox\data\network_full\seed_100\smaller_float')
-
-new_file['grid_spikes'] = new_shelve['grid_spikes']
-new_file['granule_spikes'] = new_shelve['granule_spikes']
-new_file['parameters'] = sh['parameters']
-
-
-new_file.close()
+                new_file['grid_spikes'] = new_shelve['grid_spikes']
+                new_file['granule_spikes'] = new_shelve['granule_spikes']
+                new_file['parameters'] = sh['parameters']
