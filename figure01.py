@@ -181,3 +181,38 @@ cbar.set_label('Hz', labelpad=15, rotation=270)
 # =============================================================================
 # =============================================================================
 
+
+# =============================================================================
+# grid fields
+# =============================================================================
+
+spacing = 50
+pos_peak = [80, 100]
+x1 = int(pos_peak[0]/2)
+y1 = int(pos_peak[1]/2)
+orientation = 40
+
+grid_rate = grid_model._grid_maker(spacing,
+                             orientation, pos_peak).reshape(200, 200)
+
+
+f1, ax1 = plt.subplots(figsize=(7, 9))
+
+cmap2 = sns.color_palette('RdYlBu_r', as_cmap=True)
+im1 = ax1.imshow(grid_rate, cmap=cmap2)
+
+ax1.set_xticks(np.arange(0, 240, 40))
+ax1.set_xticklabels(np.arange(0, 120, 20))
+ax1.set_yticks(np.arange(0, 240, 40))
+ax1.set_yticklabels(np.arange(0, 120, 20))
+
+ax1.set_xlabel('Position (cm)')
+ax1.set_ylabel('Position (cm)')
+
+ax1.set_title(f'spacing= {spacing} cm    ' +
+              f'origin = [{y1} cm, {x1} cm]     ' +
+              f'orientation={orientation} degree', loc='center')
+
+# =============================================================================
+# grid fields
+# =============================================================================
