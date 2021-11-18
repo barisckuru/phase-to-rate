@@ -14,11 +14,11 @@ for root, dirnames, filenames in os.walk(in_path):
         os.makedirs(out_path, exist_ok=True)
 
         out_shelve_path = os.path.join(out_path, filename)
-        # 
+
         curr_file_path = os.path.join(root, '.'.join(filename.split('.')[:-1]))
-        # assert os.path.isfile(curr_file_path)
+
         with shelve.open(curr_file_path) as sh:
-            print(list(sh.keys()))
+            print(f"Current file: {curr_file_path}")
             new_shelve = {'grid_spikes': 
                           {traj: {ps:[] for ps in sh['grid_spikes'][traj].keys()}
                            for traj in sh['grid_spikes'].keys()},
