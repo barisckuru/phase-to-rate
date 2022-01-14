@@ -35,9 +35,9 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 #                 71, 70, 69, 68, 67, 66, 65, 60]
 
 n_samples = 20
-# grid_seeds = np.arange(1,11,1)
+grid_seeds = np.arange(1,11,1)
 
-grid_seeds = np.array([1])
+# grid_seeds = np.array([1])
 
 tuning = 'full'
 
@@ -601,6 +601,10 @@ plt.tight_layout()
 from scipy import stats
 from scipy.stats import pearsonr,  spearmanr
 
+# =============================================================================
+# single bin
+# =============================================================================
+
 r_data = []
 for grid_seed in all_codes:
     for shuffling in all_codes[grid_seed]:
@@ -626,6 +630,45 @@ for grid_seed in all_codes:
                                      comp_trajectories, grid_seed, shuffling,
                                      cell, code]
                         r_data.append(copy.deepcopy(r_data_sing))
+                        
+                        
+# =============================================================================
+# all bins
+# =============================================================================
+
+
+
+
+r_data = []
+for grid_seed in all_codes:
+    for shuffling in all_codes[grid_seed]:
+        for cell in all_codes[grid_seed][shuffling]:
+            for code in all_codes[grid_seed][shuffling][cell]:
+                for traj_idx in range(len(trajectories)):
+                    r_input_code = all_codes[grid_seed][shuffling][cell][code]
+                    f = int(r_input_code.shape[0]/8000)
+                    baseline_traj = np.concatenate((
+                        r_input_code[1000*f:1200*f, 0, 0], 
+                        r_input_code[5000*f:5200*f, 0, 0]))
+                    for poisson in range(r_input_code.shape[2]):
+                        compared_traj = r_input_code[:, poisson, traj_idx]
+                        compared_traj = np.concatenate((
+                            compared_traj[1000*f:1200*f],
+                            compared_traj[5000*f:5200*f]))
+                        pearson_r = pearsonr(baseline_traj, compared_traj)[0]
+                        spearman_r = spearmanr(baseline_traj, compared_traj)[0]
+                        traj = trajectories[traj_idx]
+                        idx = 75 - traj
+                        comp_trajectories = str(75)+'_'+str(traj)
+                        r_data_sing = [idx, pearson_r, spearman_r, poisson,
+                                     comp_trajectories, grid_seed, shuffling,
+                                     cell, code]
+                        r_data.append(copy.deepcopy(r_data_sing))
+                        
+                        
+# =============================================================================
+# plotting
+# =============================================================================
 
 df = pd.DataFrame(r_data,
                   columns=['distance', 'pearson_r','spearman_r', 'poisson_seed',
