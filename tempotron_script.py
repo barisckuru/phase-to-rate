@@ -25,7 +25,7 @@ pr.add_argument('-grid_seed',
 pr.add_argument('-shuffling',
                 type=str,
                 help='Process shuffled or non-shuffled',
-                default=os.getcwd(),
+                default='non-shuffled',
                 dest='shuffling')
 
 args = pr.parse_args()
