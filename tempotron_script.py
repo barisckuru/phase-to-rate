@@ -13,6 +13,24 @@ import matplotlib.pyplot as plt
 import sqlite3
 import sys
 import multiprocessing
+import argparse
+
+"""Parse Command Line inputs"""
+pr = argparse.ArgumentParser(description='Local pattern separation paradigm')
+pr.add_argument('-grid_seed',
+                type=int,
+                help='Which grid seed to process',
+                default=1,
+                dest='grid_seed')
+pr.add_argument('-shuffling',
+                type=str,
+                help='Process shuffled or non-shuffled',
+                default=os.getcwd(),
+                dest='shuffling')
+
+args = pr.parse_args()
+grid_seed = args.grid_seed
+shuffling = args.shuffling
 
 """Parameters"""
 seed = 63
@@ -21,14 +39,14 @@ epochs = 200  # Number of learning epochs
 total_time = 2000.0 # Simulation time
 V_rest = 0.0  # Resting potential
 learning_rate = 1e-4
-n_cells = 20
-threshold = 5
+n_cells = 200
+threshold = 25
 tau = 10.0
 tau_s = tau / 4.0
 # efficacies = 1.8 * np.random.random(n_cells) - 0.50
 
 trajectory_1 = '75'
-trajectory_2 = '74'
+trajectory_2 = '60'
 
 cell_type = 'grid_spikes'
 
@@ -36,7 +54,7 @@ cell_type = 'grid_spikes'
 dirname = os.path.dirname(__file__)
 example_data = os.path.join(
     dirname, 'data', 'tempotron',
-    'grid-seed_duration_shuffling_tuning_8_2000_non-shuffled_full')
+    f'grid-seed_duration_shuffling_tuning_{grid_seed}_2000_{shuffling}_full')
 data = shelve.open(example_data)
 
 """Structure and label spike times"""
@@ -53,7 +71,6 @@ pre_accuracy = tempotron.accuracy(all_spikes)
 print("Pre-training accuracy: " + 
       str(pre_accuracy))
 tempotron.plot_membrane_potential(0, total_time, all_spikes[0][0])
-# sys.exit()
 
 tempotron.train(all_spikes, epochs, learning_rate=learning_rate)
 print(tempotron.efficacies)
