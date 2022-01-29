@@ -26,9 +26,7 @@ pr.add_argument('-shuffling',
                 type=str,
                 help='Process shuffled or non-shuffled',
                 default='shuffled',
-=======
                 default='non-shuffled',
->>>>>>> 312e80d1a9e28a972e1b8ff6c29111adcdc9880d
                 dest='shuffling')
 
 args = pr.parse_args()
