@@ -97,7 +97,7 @@ plt.show()
 grid_seed, duration, shuffling, network = example_data.split(os.sep)[-1].split("_")[-4:]
 
 db_path = os.path.join(
-    dirname, 'data', 'tempotron.db')
+    dirname, 'data', 'tempotron_merged_gcs.db')
 con = sqlite3.connect(db_path)
 cur = con.cursor()
 cur.execute(f"""INSERT INTO tempotron_run VALUES 
