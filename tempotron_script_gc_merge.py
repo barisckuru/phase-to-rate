@@ -73,10 +73,10 @@ for idx, pattern in enumerate(all_spikes):
     
     all_spikes[idx][0] = np.array(new_pattern, dtype=object)
 
-n_cells = int(n_cells/n_merge)
+
 
 # Initialize synaptic efficiencies
-efficacies = np.random.rand(n_cells)
+efficacies = np.random.rand(int(n_cells/n_merge))
 print('synaptic efficacies:', efficacies, '\n')
 
 tempotron = Tempotron(V_rest, tau, tau_s, efficacies,total_time, threshold, jit_mode=True, verbose=True)
@@ -104,7 +104,7 @@ cur.execute(f"""INSERT INTO tempotron_run VALUES
             ({seed}, {epochs},{total_time},{V_rest},{tau},{tau_s},{threshold},
              {learning_rate},{n_cells},{trajectory_1},{trajectory_2},{pre_accuracy},
              {trained_accuracy},{grid_seed}, {duration}, 
-             '{shuffling}', '{network}', '{cell_type}')
+             '{shuffling}', '{network}', '{cell_type}', {n_merge})
             """)
 
 con.commit()
