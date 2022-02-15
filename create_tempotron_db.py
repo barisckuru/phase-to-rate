@@ -36,8 +36,9 @@ cur.execute('''CREATE TABLE tempotron_run
             (tempotron_seed INT, epochs INT, time FLOAT, Vrest FLOAT, tau FLOAT,
              tau_s FLOAT, threshold FLOAT, learning_rate FLOAT, n_cells INT,
              trajectory_one FLOAT, trajectory_two, pre_accuracy FLOAT,
-             trained_accuracy FLOAT, grid_seed INT, duration FLOAT, 
-             shuffling VARCHAR(255), network VARCHAR(255), cell_type VARCHAR(255)
+             trained_accuracy FLOAT, pre_loss FLOAT, trained_loss FLOAT,
+             grid_seed INT, duration FLOAT, shuffling VARCHAR(255), 
+             network VARCHAR(255), cell_type VARCHAR(255)
              )''')
             
 
