@@ -39,7 +39,7 @@ cur.execute('''CREATE TABLE tempotron_run
              trained_accuracy FLOAT, pre_loss FLOAT, trained_loss FLOAT,
              delta_loss FLOAT, distance FLOAT,
              grid_seed INT, duration FLOAT, shuffling VARCHAR(255), 
-             network VARCHAR(255), cell_type VARCHAR(255)
+             network VARCHAR(255), cell_type VARCHAR(255), array_id VARCHAR(36)
              )''')
             
 

@@ -14,6 +14,7 @@ import sqlite3
 import sys
 import multiprocessing
 import argparse
+import uuid
 
 """Parse Command Line inputs"""
 pr = argparse.ArgumentParser(description='Local pattern separation paradigm')
@@ -46,7 +47,7 @@ tau_s = tau / 4.0
 # efficacies = 1.8 * np.random.random(n_cells) - 0.50
 
 trajectory_1 = '75'
-trajectory_2 = '15'
+trajectory_2 = '60'
 
 cell_type = 'granule_spikes'
 """Load data"""
@@ -66,7 +67,8 @@ efficacies = np.random.rand(n_cells)
 print('synaptic efficacies:', efficacies, '\n')
 tempotron = Tempotron(V_rest, tau, tau_s, efficacies,total_time, threshold, jit_mode=True, verbose=True)
 pre_accuracy = tempotron.accuracy(all_spikes)
-# sys.exit()
+tempotron.plot_membrane_potential(0, 2000, all_spikes[0][0])
+sys.exit()
 training_result = tempotron.train(all_spikes, epochs, learning_rate=learning_rate)
 pre_loss = training_result[1][0]
 trained_loss = training_result[1][-1]
@@ -80,16 +82,24 @@ db_path = os.path.join(
     dirname, 'data', 'tempotron.db')
 con = sqlite3.connect(db_path)
 cur = con.cursor()
+file_id = str(uuid.uuid4())
 cur.execute(f"""INSERT INTO tempotron_run VALUES 
             ({seed}, {epochs},{total_time},{V_rest},{tau},{tau_s},{threshold},
              {learning_rate},{n_cells},{trajectory_1},{trajectory_2},{pre_accuracy},
              {trained_accuracy}, {pre_loss}, {trained_loss}, {pre_loss-trained_loss},
              {float(trajectory_1) - float(trajectory_2)}, {grid_seed}, {duration}, 
-             '{shuffling}', '{network}', '{cell_type}')
+             '{shuffling}', '{network}', '{cell_type}', '{file_id}')
             """)
 
 con.commit()
 con.close()
+
+"""Save loss and accuracy to file"""
+array_path = os.path.join(
+    dirname, 'data', 'arrays')
+os.makedirs(array_path, exist_ok=True)
+array_file = os.path.join(array_path, file_id)
+np.save(array_file, np.array(training_result))
 
 
 # con = sqlite3.connect(db_path)
