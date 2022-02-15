@@ -18,7 +18,7 @@ db_path = os.path.join(
 con = sqlite3.connect(db_path)
 cur = con.cursor()
 # rows = cur.execute(f"""SELECT * FROM tempotron_run WHERE cell_type='granule_spikes' AND learning_rate=0.001 AND epochs=100""")
-rows = cur.execute(f"""SELECT * FROM tempotron_run WHERE n_cells=400 AND trajectory_two=60""")
+rows = cur.execute(f"""SELECT * FROM tempotron_run WHERE n_cells=400""")
 data = []
 for x in rows:
     data.append(x)
@@ -27,13 +27,15 @@ for x in rows:
 df = pd.DataFrame(data=data, columns=['tempotron_seed', 'epochs', 'time', 'Vrest', 'tau',
              'tau_s', 'threshold', 'learning_rate', 'n_cells',
              'trajectory_one', 'trajectory_two', 'pre_accuracy',
-             'trained_accuracy', 'grid_seed', 'duration', 
+             'trained_accuracy', 'pre_loss', 
+             'trained_loss', 'delta_loss', 'distance' 'grid_seed', 'duration', 
              'shuffling', 'network', 'cell_type'])
 
-df['distance'] = df['trajectory_one'] - df['trajectory_two']
 df['delta_learning'] = df['trained_accuracy'] - df['pre_accuracy']
 # df['learning_index'] = (df['pre_accuracy']/(df['trained_accuracy'] - df['pre_accuracy']))**-1
 df['learning_index'] = (df['trained_accuracy'] - df['pre_accuracy'])/df['pre_accuracy']
+
+df = df.drop_duplicates()
 
 """
 plt.figure()
@@ -76,3 +78,8 @@ print(ttest_rel(a, b, alternative='greater'))
 a = df[(df['shuffling'] == 'non-shuffled')].sort_values('grid_seed')["pre_accuracy"]
 b = df[(df['shuffling'] == 'shuffled')].sort_values('grid_seed')["pre_accuracy"]
 print(ttest_rel(a, b, alternative='two-sided'))
+
+print(df.groupby("shuffling").describe()['delta_learning'])
+
+print(df.groupby("shuffling").describe()['learning_index'])
+
