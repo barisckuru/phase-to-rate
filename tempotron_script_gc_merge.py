@@ -82,8 +82,9 @@ pre_accuracy = tempotron.accuracy(all_spikes)
 print("Pre-training accuracy: " + 
       str(pre_accuracy))
 tempotron.plot_membrane_potential(0, total_time, all_spikes[0][0])
-sys.exit()
-tempotron.train(all_spikes, epochs, learning_rate=learning_rate)
+training_result = tempotron.train(all_spikes, epochs, learning_rate=learning_rate)
+pre_loss = training_result[1][0]
+trained_loss = training_result[1][-1]
 print(tempotron.efficacies)
 trained_accuracy = tempotron.accuracy(all_spikes)
 print("Post-training accuracy: " + 
