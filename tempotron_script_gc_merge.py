@@ -40,10 +40,10 @@ total_time = 2000.0 # Simulation time
 V_rest = 0.0  # Resting potential
 learning_rate = 1e-3
 n_cells = 2000
-threshold = 8
-tau = 10.0
-tau_s = tau / 4.0
-n_merge = 10
+threshold = 50
+tau = 30.0
+tau_s = tau / 2.0
+n_merge = 50
 # efficacies = 1.8 * np.random.random(n_cells) - 0.50
 
 trajectory_1 = '75'
@@ -73,8 +73,6 @@ for idx, pattern in enumerate(all_spikes):
     
     all_spikes[idx][0] = np.array(new_pattern, dtype=object)
 
-
-
 # Initialize synaptic efficiencies
 efficacies = np.random.rand(int(n_cells/n_merge))
 print('synaptic efficacies:', efficacies, '\n')
@@ -103,8 +101,9 @@ cur = con.cursor()
 cur.execute(f"""INSERT INTO tempotron_run VALUES 
             ({seed}, {epochs},{total_time},{V_rest},{tau},{tau_s},{threshold},
              {learning_rate},{n_cells},{trajectory_1},{trajectory_2},{pre_accuracy},
-             {trained_accuracy},{grid_seed}, {duration}, 
-             '{shuffling}', '{network}', '{cell_type}', {n_merge})
+             {trained_accuracy}, {pre_loss}, {trained_loss}, {pre_loss-trained_loss},
+             {float(trajectory_1) - float(trajectory_2)}, {grid_seed}, {duration}, 
+             '{shuffling}', '{network}', '{cell_type}', '{file_id}', {n_merge})
             """)
 
 con.commit()
