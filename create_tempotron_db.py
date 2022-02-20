@@ -11,7 +11,7 @@ import numpy as np
 
 dirname = os.path.dirname(__file__)
 db_path = os.path.join(
-    dirname, 'data', 'tempotron.db')
+    dirname, 'data', 'tempotron_thresholds_mean.db')
 
 con = sqlite3.connect(db_path)
 
