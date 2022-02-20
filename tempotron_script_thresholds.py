@@ -14,6 +14,7 @@ import sqlite3
 import sys
 import multiprocessing
 import argparse
+import uuid
 
 """Parse Command Line inputs"""
 pr = argparse.ArgumentParser(description='Local pattern separation paradigm')
@@ -24,7 +25,7 @@ pr.add_argument('-grid_seed',
                 dest='grid_seed')
 pr.add_argument('-shuffling',
                 type=str,
-                help='Process shuffled or non-shuffled',
+                help='Process shuffled or shuffled',
                 default='non-shuffled',
                 dest='shuffling')
 
@@ -35,15 +36,14 @@ shuffling = args.shuffling
 """Parameters"""
 seed = 91
 np.random.seed(seed)
-epochs = 200  # Number of learning epochs
+epochs = 10  # Number of learning epochs
 total_time = 2000.0 # Simulation time
 V_rest = 0.0  # Resting potential
 learning_rate = 1e-3
-n_cells = 2000
-threshold = 50
-tau = 30.0
-tau_s = tau / 2.0
-n_merge = 50
+n_cells = 200
+threshold = 15
+tau = 10.0
+tau_s = tau / 4.0
 # efficacies = 1.8 * np.random.random(n_cells) - 0.50
 
 trajectory_1 = '75'
@@ -58,57 +58,55 @@ example_data = os.path.join(
 data = shelve.open(example_data)
 
 """Structure and label spike times"""
-spike_times1 = [(np.array(data[trajectory_1][cell_type][x][:n_cells], dtype=object), True) for x in data[trajectory_1][cell_type]]
-spike_times2 = [(np.array(data[trajectory_2][cell_type][x][:n_cells], dtype=object), False) for x in data[trajectory_2][cell_type]]
+spike_times1 = [(np.array(data[trajectory_1][cell_type][x][:n_cells], dtype=object), False) for x in data[trajectory_1][cell_type]]
+spike_times2 = [(np.array(data[trajectory_2][cell_type][x][:n_cells], dtype=object), True) for x in data[trajectory_2][cell_type]]
 all_spikes = np.array(spike_times1 + spike_times2, dtype=object)
 
-"""Merge n granule cells"""
-np.random.permutation(np.arange(n_cells))
-for idx, pattern in enumerate(all_spikes):
-    pattern_split = np.split(pattern[0], n_cells/n_merge)
-    new_pattern = []
-    for cluster in pattern_split:
-        new_st = np.sort(np.concatenate(cluster))
-        new_pattern.append(new_st)
-    
-    all_spikes[idx][0] = np.array(new_pattern, dtype=object)
-
 # Initialize synaptic efficiencies
-efficacies = np.random.rand(int(n_cells/n_merge))
+efficacies = np.random.rand(n_cells)
 print('synaptic efficacies:', efficacies, '\n')
-
 tempotron = Tempotron(V_rest, tau, tau_s, efficacies,total_time, threshold, jit_mode=True, verbose=True)
+
+"""Find the threshold"""
+tmax = [tempotron.compute_tmax(sts[0]) for sts in all_spikes]
+vmax = [tempotron.compute_membrane_potential(tmax[idx], sts[0]) for idx, sts in enumerate(all_spikes)]
+thr = np.array(vmax).mean()
+tempotron.threshold = thr
+
 pre_accuracy = tempotron.accuracy(all_spikes)
-print("Pre-training accuracy: " + 
-      str(pre_accuracy))
-tempotron.plot_membrane_potential(0, total_time, all_spikes[0][0])
+tempotron.plot_membrane_potential(0, 2000, all_spikes[0][0])
+# sys.exit()
 training_result = tempotron.train(all_spikes, epochs, learning_rate=learning_rate)
 pre_loss = training_result[1][0]
 trained_loss = training_result[1][-1]
-print(tempotron.efficacies)
 trained_accuracy = tempotron.accuracy(all_spikes)
-print("Post-training accuracy: " + 
-      str(trained_accuracy))
 tempotron.plot_membrane_potential(0, total_time, all_spikes[0][0])
-plt.show()
 
 """Save results to database"""
 grid_seed, duration, shuffling, network = example_data.split(os.sep)[-1].split("_")[-4:]
 
 db_path = os.path.join(
-    dirname, 'data', 'tempotron_merged_gcs.db')
+    dirname, 'data', 'tempotron_thresholds_mean.db')
 con = sqlite3.connect(db_path)
 cur = con.cursor()
+file_id = str(uuid.uuid4())
 cur.execute(f"""INSERT INTO tempotron_run VALUES 
-            ({seed}, {epochs},{total_time},{V_rest},{tau},{tau_s},{threshold},
+            ({seed}, {epochs},{total_time},{V_rest},{tau},{tau_s},{tempotron.threshold},
              {learning_rate},{n_cells},{trajectory_1},{trajectory_2},{pre_accuracy},
              {trained_accuracy}, {pre_loss}, {trained_loss}, {pre_loss-trained_loss},
              {float(trajectory_1) - float(trajectory_2)}, {grid_seed}, {duration}, 
-             '{shuffling}', '{network}', '{cell_type}', '{file_id}', {n_merge})
+             '{shuffling}', '{network}', '{cell_type}', '{file_id}')
             """)
 
 con.commit()
 con.close()
+
+"""Save loss and accuracy to file"""
+array_path = os.path.join(
+    dirname, 'data', 'arrays')
+os.makedirs(array_path, exist_ok=True)
+array_file = os.path.join(array_path, file_id)
+np.save(array_file, np.array(training_result))
 
 
 # con = sqlite3.connect(db_path)
