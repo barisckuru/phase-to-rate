@@ -202,7 +202,8 @@ def load_spikes(path, cell_type, trajectories, n_samples):
     storage.close()
     return spikes
 
-
+# changed for tempotron data
+# see collective path and collective storage 'trajs and 75-60'
 def _collect_spikes(
     grid_seed,
     shuffling,
@@ -212,7 +213,7 @@ def _collect_spikes(
     path="/home/baris/results/"
 ):
 
-    collective_path = path + str(network_type) + "/collective/"
+    collective_path = path + "tempotron/" + str(network_type) + "/collective/"
     separate_path = (path + str(network_type) + "/seperate/" +
                      "seed_" + str(grid_seed) + "/")
     print(separate_path)
@@ -228,9 +229,9 @@ def _collect_spikes(
         output_name = f"{grid_seed}_{dur_ms}"
         collective_storage = []
         collective_storage = (collective_path +
-                              "grid-seed_duration_shuffling_tuning_")
+                              "grid-seed_duration_shuffling_tuning_trajs_")
         collective_storage = (collective_storage + output_name + "_" +
-                              shuffling + "_" + network_type)
+                              shuffling + "_" + network_type + '_75-60')
         storage = shelve.open(collective_storage, writeback=True)
         traj_key = str(traj)
         storage[traj_key] = {}
@@ -248,10 +249,16 @@ def _collect_spikes(
 
 # trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 #                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
-# for i in np.arange(1,11,1):
+# grid_seeds = np.arange(1,11,1)
+
+# trajectories = [75, 60]
+# grid_seeds = np.arange(21,31,1)
+# tuning = 'full'
+
+# for i in grid_seeds:
 #     print(i)
-#     _collect_spikes(i, 'non-shuffled', 2000, trajectories, 'no-feedforward')
+#     _collect_spikes(i, 'non-shuffled', 2000, trajectories, tuning)
     
-# for i in np.arange(1,11,1):
+# for i in grid_seeds:
 #     print(i)
-#     _collect_spikes(i, 'shuffled', 2000, trajectories, 'no-feedforward')
+#     _collect_spikes(i, 'shuffled', 2000, trajectories, tuning)

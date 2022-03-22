@@ -25,7 +25,8 @@ neuron_tools.load_compiled_mechanisms(
 
 
 """Parameters"""
-grid_seeds = [1,2,3,4,5,6,7,8,9,10]
+# grid_seeds = [21,22,23,24,25]
+grid_seeds = [26,27,28,29,30]
 
 # trajectories, p = [75], 100  # In cm
 # trajectories, p = [74.5], 200
@@ -41,9 +42,9 @@ grid_seeds = [1,2,3,4,5,6,7,8,9,10]
 # trajectories, p = [67], 1200
 # trajectories, p = [66], 1300
 # trajectories, p = [65], 1400
-# trajectories, p = [60], 1500
+trajectories, p = [60], 1500
 # trajectories, p = [30], 1600
-trajectories, p = [15], 1700
+# trajectories, p = [15], 1700
 
 poisson_seeds = np.arange(p, p + 20, 1)
 poisson_seeds = list(poisson_seeds)
@@ -57,9 +58,10 @@ dur_ms = 2000
 rate_scale = 5
 n_grid = 200
 pp_weight = 9e-4
+network_type = "full"
 # network_type = "no-feedback"
 # network_type = "disinhibited"
-network_type = "no-feedforward"
+# network_type = "no-feedforward"
 
 print(network_type)
 

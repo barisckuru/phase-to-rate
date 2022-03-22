@@ -15,6 +15,7 @@ import time
 import numpy as np
 from pydentate_integrate import granule_simulate
 import os
+import glob
 
 start = time.time()
 
@@ -26,24 +27,23 @@ neuron_tools.load_compiled_mechanisms(
 
 """Parameters"""
 # grid_seeds = [1,2,3,4,5,6,7,8,9,10]
-# grid_seeds = [1,2]
-# grid_seeds = [3,4]
-# grid_seeds = [5,6]
-# grid_seeds = [7,8]
-grid_seeds = [9,10]
+
+# grid_seeds = [11,12,13,14,15,16,17,18,19,20]
+
+grid_seeds = [21,22,23,24,25,26,27,28,29,30]
 
 # shuffling = "non-shuffled"
 shuffling = "shuffled"
 
-pp_weight = 0.00059
+pp_weight = 0.00067
 # network_type = "full"
-# network_type = "no-feedback" 
-network_type = "disinhibited"
+network_type = "no-feedback" 
+# network_type = "disinhibited"
 # network_type = "no-feedforward"
 
 # grid_seeds = [11]
 
-trajectories, p = [75], 100  # In cm
+# trajectories, p = [75], 100  # In cm
 # trajectories, p = [74.5], 200
 # trajectories, p = [74], 300
 # trajectories, p = [73.5], 400
@@ -57,7 +57,7 @@ trajectories, p = [75], 100  # In cm
 # trajectories, p = [67], 1200
 # trajectories, p = [66], 1300
 # trajectories, p = [65], 1400
-# trajectories, p = [60], 1500
+trajectories, p = [60], 1500
 # trajectories, p = [30], 1600
 # trajectories, p = [15], 1700
 
@@ -82,6 +82,7 @@ n_grid = 200
 
 print(network_type)
 print(pp_weight)
+print(shuffling)
 parameters = {}
 parameters = {
     "dur_ms": dur_ms,
@@ -111,7 +112,8 @@ print("grid", grid_seeds, "poiss", poisson_seeds,
 
 
 for grid_seed in grid_seeds:
-    save_dir = (f'/home/baris/results/different_weight/{network_type}/seperate/seed_'
+    save_dir = (f'/home/baris/results/tempotron/adjusted_weight/'
+                +f'{network_type}/seperate/seed_'
                     + str(grid_seed) + '/')
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
@@ -167,62 +169,65 @@ for grid_seed in grid_seeds:
 
 
 
+def _collect_spikes(
+    grid_seed,
+    shuffling,
+    dur_ms,
+    trajectories,
+    network_type,
+    weight,
+    path="/home/baris/results/tempotron/adjusted_weight/"
+):
 
-# counts = [len(cell) for cell in granule_spikes[75][100]]
+    collective_path = (path + str(network_type) 
+                       + "/collective/")
+    separate_path = (path + str(network_type) + "/seperate/" +
+                     "seed_" + str(grid_seed) + "/"+str(weight)+"/")
+    print(separate_path)
 
-# np.mean(counts)/2
+    for traj in trajectories:
+        print(traj)
+        file = glob.glob(os.path.join(
+            separate_path, "*%s*_%s*.dat" % (traj, shuffling)))[0][0:-4]
+        fname = f"{separate_path}*{traj}]*_{shuffling}*.dat"
+        file = glob.glob(fname)[0][0:-4]
+        print(file)
+        storage_old = shelve.open(file)
+        output_name = f"{grid_seed}"
+        collective_storage = []
+        collective_storage = (collective_path +
+                              "grid-seed_duration_shuffling_tuning_trajs_")
+        collective_storage = (collective_storage + output_name + "_" +
+                              str(dur_ms) + "_" + shuffling + "_" 
+                              + network_type + '-adjusted_75-60')
+        storage = shelve.open(collective_storage, writeback=True)
+        traj_key = str(traj)
+        storage[traj_key] = {}
+        storage[traj_key]["grid_spikes"] = copy.deepcopy(
+            storage_old["grid_spikes"][traj]
+        )
+        storage[traj_key]["granule_spikes"] = copy.deepcopy(
+            storage_old["granule_spikes"][traj]
+        )
+        storage[traj_key]["parameters"] = copy.deepcopy(
+            storage_old["parameters"])
+        storage.close()
+        storage_old.close()
 
-# stop = time.time()
-# time_sec = stop - start
-# time_min = time_sec / 60
-# time_hour = time_min / 60
-# print("time, ", time_sec, " sec, ", time_min, " min, ", time_hour, "hour  ")
+# grid-seed_duration_shuffling_tuning_trajs_20_2000_shuffled_no-feedback_75-60
+# trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
+#                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
+# grid_seeds = np.arange(1,11,1)
 
+weight = 0.00067
+trajectories = [75, 60]
+grid_seeds = np.arange(1,31,1)
+tuning = 'no-feedback'
 
-# import matplotlib.pyplot as plt
-# full_weights = [0.0009, 0.001, 0.0012, 0.0015, 0.0017, 0.002, 0.0025, .003]
-# full_means = [0.2523, 0.3123, 0.4288, 0.6055, 0.7353, 0.9483, 1.413, 1.937]
-
-
-# # 0.25, 0.41, 0.76, 1.387
-# # 0.0009, 0.0012, 0.0017, 0.0025
-
-# # 
-
-# noff_weights = [0.0007, 0.0008, 0.0009, 0.001, 0.0015, 0.002, 0.0025]
-# noff_means = [0.203, 0.317, 0.41, 0.529, 0.861, 1.247, 1.67]
-
-# # 0.25, 0.41, 0.76, 1.387
-# # 0.00075, 0.0009, 0.00097, 0.00175
-
-# nofb_weights = [0.0006, 0.0007, 0.0008, 0.0009, 0.001, 0.0015]
-# nofb_means = [0.13, 0.288, 0.489, 0.76, 0.993, 2.45]
-
-# # 0.25, 0.41, 0.76, 1.387
-# # 0.0007, 0.0078, 0.0009,  0.0011
-
-# disinh_weights = [0.0005, 0.0006, 0.0007, 0.0008, 0.0009]
-# disinh_means = [0.111, 0.217, 0.532, 0.945, 1.387]
-
-# # 0.25, 0.41, 0.76, 1.387
-# # 0.00061, 0.00068, 0.00077, 0.0009
-
-# fig, (ax1, ax2, ax3, ax4) = plt.subplots(1,4, sharey=True)
-# ax1.plot(full_weights, full_means)
-# ax1.set_ylabel('mean rate')
-# ax1.set_xlabel('pp weight')
-# ax1.tick_params(labelrotation=45)
-# ax1.set_title('full')
-# ax2.plot(noff_weights, noff_means)
-# ax2.set_xlabel('pp weight')
-# ax2.set_title('noff')
-# ax2.tick_params(labelrotation=45)
-# ax3.plot(nofb_weights, nofb_means)
-# ax3.set_xlabel('pp weight')
-# ax3.set_title('nofb')
-# ax3.tick_params(labelrotation=45)
-# ax4.plot(disinh_weights, disinh_means)
-# ax4.set_xlabel('pp weight')
-# ax4.set_title('disinhibited')
-# ax4.tick_params(labelrotation=45)
-# plt.tight_layout()
+for i in grid_seeds:
+    print(i)
+    _collect_spikes(i, 'non-shuffled', 2000, trajectories, tuning, weight)
+    
+for i in grid_seeds:
+    print(i)
+    _collect_spikes(i, 'shuffled', 2000, trajectories, tuning, weight)

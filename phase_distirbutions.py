@@ -23,7 +23,7 @@ grid_seeds = np.arange(1,11,1)
 
 # grid_seeds = np.array([1])
 
-tuning = 'disinhibited'
+tuning = 'no-feedforward'
 
 ns_grid_phases = np.empty(0)
 ns_granule_phases = np.empty(0)
@@ -95,12 +95,26 @@ for grid_seed in grid_seeds:
     s_granule_phases = np.append(s_granule_phases,
                                  curr_s_granule_phases[curr_s_granule_phases!=0])
 
+
+with open(f'phase-distribution_{tuning}.pkl', 'wb') as f:
+    all_codes = pickle.load(f)
+
+
+
+
 plt.close('all')
-phase_dist= np.append(ns_grid_phases, ns_granule_phases)
+phase_dist= np.concatenate((ns_grid_phases, ns_granule_phases, s_grid_phases, s_granule_phases))
 phase_dist = phase_dist/np.pi
-cell = ['grid']*(ns_grid_phases.shape[0]) + ['granule']*(ns_granule_phases.shape[0])
-phase_df = pd.DataFrame({'phase distribution ($\pi$)': phase_dist,
-                   'cell': pd.Categorical(cell)})
+cell = (['grid']*(ns_grid_phases.shape[0]) +
+        ['granule']*(ns_granule_phases.shape[0]) +
+        ['grid']*(s_grid_phases.shape[0]) +
+        ['granule']*(s_granule_phases.shape[0]))
+shuffling = ((len(ns_grid_phases)+len(ns_granule_phases))*['non-shuffled'] +
+             (len(s_grid_phases)+len(s_granule_phases))*['shuffled'])
+phase_df = pd.DataFrame({'phase (pi)': phase_dist,
+                         'cell': pd.Categorical(cell),
+                         'shuffling': pd.Categorical(shuffling)})
+phase_df.to_pickle(f'fig2_phase-dist_{tuning}.pkl')
 
 fig_inh = sns.histplot(data=phase_df, x='phase distribution ($\pi$)',
                        kde=True, hue='cell', binwidth=(2*np.pi/180))
