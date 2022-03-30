@@ -14,6 +14,8 @@ import seaborn as sns
 import pickle
 import copy
 
+save_dir = '/home/baris/results/pickled/'
+
 rate_learning_rate = 1e-4
 phase_learning_rate = 1e-4
 n_iter = 10000
@@ -21,22 +23,22 @@ n_iter = 10000
 trajectories = [75, 60]
 
 n_samples = 20
-grid_seeds = np.arange(11,31,1)
-tuning = 'adjusted_nofb'
-shuffle = ['non-shuffled', 'shuffled']
 
+tuning = 'adjusted_noff'
+shuffle = ['non-shuffled', 'shuffled']
 all_codes = {"shuffled": {}, "non-shuffled": {}}
+grid_seeds = np.arange(11,21,1)
 for shuffling in shuffle:
     for grid_seed in grid_seeds:
-        adj_path = '/home/baris/results/tempotron/adjusted_weight/no-feedback/collective/'
-        adj_fname= f'grid-seed_duration_shuffling_tuning_trajs_{grid_seed}_2000_{shuffling}_no-feedback-adjusted_75-60'
+        adj_path = '/home/baris/results/tempotron/adjusted_weight/no-feedforward/collective/'
+        adj_fname= f'grid-seed_duration_shuffling_tuning_trajs_{grid_seed}_2000_{shuffling}_no-feedforward-adjusted_75-60'
         full_path = '/home/baris/results/tempotron/full/collective/'
         full_fname= f'grid-seed_duration_shuffling_tuning_trajs_{grid_seed}_2000_{shuffling}_full_75-60'
         
         if tuning == 'full':
             path = full_path
             fname = full_fname
-        elif tuning == 'adjusted_nofb':
+        elif tuning == 'adjusted_noff':
             path = adj_path
             fname = adj_fname
         directory = path + fname
@@ -52,7 +54,9 @@ for shuffling in shuffle:
                                            'phase': granule_phase_code}
         print(f'{grid_seed} done')
 
-with open(f'{tuning}_codes_grid-seeds_11-30.pkl', 'wb') as f:
+
+fname = f'{tuning}_codes_grid-seeds_11-30.pkl'
+with open(save_dir+fname, 'wb') as f:
     pickle.dump(all_codes, f)
     
 data = []
@@ -80,6 +84,10 @@ df = pd.DataFrame(data,
                   columns=['grid_seed', 'speed', 'threshold_crossing',
                            'shuffling', 'code_type', 'learning_rate'])
 
+fname2 = f'{tuning}_adjusted_perceptron.pkl'
+with open(save_dir+fname2, 'wb') as f:
+    pickle.dump(df, f)
+    
 sns.reset_orig()
 rate_df = df.groupby(['code_type']).get_group(('rate'))
 phase_df = df.groupby(['code_type']).get_group(('phase'))

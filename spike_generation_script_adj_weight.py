@@ -219,10 +219,12 @@ def _collect_spikes(
 #                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 # grid_seeds = np.arange(1,11,1)
 
-weight = 0.00067
+# disinh 0.0006
+# noff 0.00071
+weight = 0.00071
 trajectories = [75, 60]
-grid_seeds = np.arange(1,31,1)
-tuning = 'no-feedback'
+grid_seeds = np.arange(11,21,1)
+tuning = 'no-feedforward'
 
 for i in grid_seeds:
     print(i)

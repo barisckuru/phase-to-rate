@@ -497,7 +497,6 @@ granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 
 fname = results_dir + 'excel/mean_deltaR_2000ms_75vsall.xlsx'
 all_mean_deltaR = pd.read_excel(fname, index_col=0)
-granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 f2g, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
 
 sns.boxplot(x='tuning', y='mean deltaR', hue='shuffling', ax=ax, zorder=1,
@@ -726,6 +725,10 @@ sns.boxplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,
 sns.stripplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,
               zorder=2, data=dfa3,
               color='black', jitter=False, dodge=True, linewidth=0.1, size=2)
+sns.lineplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,
+             zorder=1, legend=False,
+             data=dfa3, linewidth=1, hue='grid_seed',
+             palette= sns.color_palette(10*['black']), alpha=0.3, ci=None)
 ax.set_ylim([1,1.4])
 ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
@@ -734,7 +737,7 @@ ax.set_ylabel('scaled value')
 ax.get_legend().remove()
 f2j.subplots_adjust(left=0.3, bottom=0.3)
 sns.despine(fig=f2j)
-_adjust_box_widths(f2c, 0.7)
+_adjust_box_widths(f2j, 0.7)
 plt.rcParams["svg.fonttype"] = "none"
 f2j.savefig(f'{save_dir}figure02_J.svg', dpi=200)
 f2j.savefig(f'{save_dir}figure02_J.png', dpi=200)
