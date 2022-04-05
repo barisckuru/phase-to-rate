@@ -21,14 +21,15 @@ from scipy import stats
 import copy
 
 
-# file directory
+# fiel directories
 results_dir = '/home/baris/results/'
 save_dir = '/home/baris/paper/figures/figure02/'
+
 
 # plotting settings
 sns.set(style='ticks', palette='deep', font='Arial', color_codes=True)
 plt.rc('font', size=10) #controls default text size
-plt.rc('axes', titlesize=8) #fontsize of the title
+plt.rc('axes', titlesize=10) #fontsize of the title
 plt.rc('axes', labelsize=10) #fontsize of the x and y labels
 plt.rc('xtick', labelsize=10) #fontsize of the x tick labels
 plt.rc('ytick', labelsize=10) #fontsize of the y tick labels
@@ -41,7 +42,7 @@ cm=1/2.54
 # =============================================================================
 # Figure 2 A
 # =============================================================================
-f2a, axes = plt.subplots(2,2, figsize=(8*cm, 5*cm), sharey=True, sharex=True)
+f2a, axes = plt.subplots(2,2, figsize=(8*cm, 6*cm), sharey=True, sharex=True)
 my_pal = {'grid': '#716969', 'granule': '#09316c'}
 
 tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
@@ -52,15 +53,17 @@ for i, tuning in enumerate(tunings):
     phase_df = phase_df[phase_df['shuffling']=='non-shuffled']
     ax = axes.flatten()[i]
     fig = sns.histplot(data=phase_df, x='phase (pi)', palette=my_pal,
-                       legend=False,
-                       kde=True, hue='cell', binwidth=(2*np.pi/360), ax=ax)
+                           kde=True, hue='cell', binwidth=(2*np.pi/180), ax=ax)
     ax.set_title(f'{tuning}')
     ax.set_xlabel('phase ($\pi$)')
-    fig.set(ylim=(0, 500000))
+        ax.legend(bbox_to_anchor=(0.5, 1),
+                   loc='upper left', borderaxespad=0., title=None)
+    fig.set(ylim=(0, 1000000))
+    
 sns.despine(fig=f2a)
 plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-ax.ticklabel_format(style='sci', scilimits=[0, 0])
 plt.rcParams["svg.fonttype"] = "none"
+save_dir = '/home/baris/paper/figures/figure02/'
 f2a.savefig(f'{save_dir}figure02_A.svg', dpi=200)
 f2a.savefig(f'{save_dir}figure02_A.png', dpi=200)
 
@@ -68,10 +71,10 @@ f2a.savefig(f'{save_dir}figure02_A.png', dpi=200)
 # Figure 2 B
 # =============================================================================
 
-f2b, axes = plt.subplots(2,2, figsize=(8*cm, 5*cm), sharey=True, sharex=True)
+f2b, axes = plt.subplots(2,2, figsize=(8*cm, 6*cm), sharey=True, sharex=True)
 # sns.set(style='ticks', palette='deep', font='Arial',
 #         font_scale=1.2, color_codes=True)
-my_pal = {'grid': '#a09573', 'granule': '#127475'}
+my_pal = {'grid': '#716969', 'granule': '#09316c'}
 
 tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
 for i, tuning in enumerate(tunings):
@@ -81,14 +84,15 @@ for i, tuning in enumerate(tunings):
     phase_df = phase_df[phase_df['shuffling']=='shuffled']
     ax = axes.flatten()[i]
     fig = sns.histplot(data=phase_df, x='phase (pi)', palette=my_pal,
-                       legend=False,
-                       kde=True, hue='cell', binwidth=(2*np.pi/360), ax=ax)
+                           kde=True, hue='cell', binwidth=(2*np.pi/180), ax=ax)
     ax.set_title(f'{tuning}')
     ax.set_xlabel('phase ($\pi$)')
-    fig.set(ylim=(0, 500000))
+    ax.legend(bbox_to_anchor=(0.5, 1),
+              loc='upper left', borderaxespad=0., title=None)
+    fig.set(ylim=(0, 1000000))
+plt.legend()
 sns.despine(fig=f2b)
 plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-ax.ticklabel_format(style='sci', scilimits=[0,0])
 plt.rcParams["svg.fonttype"] = "none"
 f2b.savefig(f'{save_dir}figure02_B.svg', dpi=200)
 f2b.savefig(f'{save_dir}figure02_B.png', dpi=200)
@@ -103,30 +107,30 @@ legend_size = 8
 
 fname = results_dir + 'excel/mean_firing_rates.xlsx'
 all_mean_rates = pd.read_excel(fname, index_col=0)
-grid_seeds = list(np.arange(1, 11, 1))
-grid_mean = all_mean_rates[all_mean_rates['cell'] == 'grid']
-granule_mean = all_mean_rates[all_mean_rates['cell'] == 'granule']
+grid_seeds = list(np.arange(1,11,1))
+grid_mean = all_mean_rates[all_mean_rates['cell']=='grid']
+granule_mean = all_mean_rates[all_mean_rates['cell']=='granule']
 
-f2c, (ax1, ax2) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 4]},
+f2c, (ax1, ax2) = plt.subplots(1,2, gridspec_kw={'width_ratios': [1, 4]},
                                figsize=(8*cm, 5*cm))
 sns.boxplot(x='cell', y='mean_rate', hue='shuffling', ax=ax1, zorder=1,
             data=grid_mean, palette=grid_pal, linewidth=0.5, fliersize=1)
-loc = 0.4
+loc = 0.5
 tune_idx = 0
 for grid in grid_seeds:
-    ns_data = grid_mean.loc[(grid_mean['shuffling'] == 'non-shuffled')
-                            &
-                            (grid_mean['grid_seeds'] == grid)]
-    s_data = grid_mean.loc[(grid_mean['shuffling'] == 'shuffled')
-                           &
-                           (grid_mean['grid_seeds'] == grid)]
+    ns_data = grid_mean.loc[(grid_mean['shuffling']=='non-shuffled')
+                                  &
+                                  (grid_mean['grid_seeds']==grid)]
+    s_data = grid_mean.loc[(grid_mean['shuffling']=='shuffled')
+                                  &
+                                  (grid_mean['grid_seeds']==grid)]
     ns_data = np.array(ns_data['mean_rate'])[0]
-    s_data = np.array(s_data['mean_rate'])[0]
-    sns.lineplot(x=[-loc/2+tune_idx, loc/2+tune_idx], ax=ax1,
-                 y=[ns_data, s_data], color='k', linewidth=0.2)
+    s_data = np.array(s_data['mean_rate'])[0]   
+    sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax1,
+                 y = [ns_data, s_data], color='k', linewidth = 0.2)
     sns.scatterplot(x=[-loc/2+tune_idx, loc/2+tune_idx], ax=ax1,
                     y=[ns_data, s_data], color='k', s=3)
-ax1.set_xticklabels(ax1.get_xticklabels(), rotation=60)
+ax1.set_xticklabels(ax1.get_xticklabels(),rotation = 60)
 handles, labels = ax1.get_legend_handles_labels()
 
 ax1.legend(handles[:2], labels[:2], bbox_to_anchor=(-1, 1.5),
@@ -146,23 +150,23 @@ tunings = ['full', 'no-feedforward',
 for grid in grid_seeds:
     tune_idx = 0
     for tuning in tunings:
-        ns_data = granule_mean.loc[(granule_mean['shuffling'] =='non-shuffled')
-                                   &
-                                   (granule_mean['tuning'] == tuning)
-                                   &
-                                   (granule_mean['grid_seeds'] == grid)]
-        s_data = granule_mean.loc[(granule_mean['shuffling'] == 'shuffled')
-                                  &
-                                  (granule_mean['tuning'] == tuning)
-                                  &
-                                  (granule_mean['grid_seeds'] == grid)]
+        ns_data = granule_mean.loc[(granule_mean['shuffling']=='non-shuffled')
+                                      &
+                                      (granule_mean['tuning']==tuning)
+                                      &
+                                      (granule_mean['grid_seeds']==grid)]
+        s_data = granule_mean.loc[(granule_mean['shuffling']=='shuffled')
+                                      &
+                                      (granule_mean['tuning']==tuning)
+                                      &
+                                      (granule_mean['grid_seeds']==grid)]
         ns_data = np.array(ns_data['mean_rate'])[0]
-        s_data = np.array(s_data['mean_rate'])[0]
-        sns.lineplot(x=[-loc/2+tune_idx, loc/2+tune_idx], ax=ax2,
-                     y=[ns_data, s_data], color='k', linewidth=0.2)
-        sns.scatterplot(x=[-loc/2+tune_idx, loc/2+tune_idx], ax=ax2,
-                        y=[ns_data, s_data], color='k', s=3)
-        tune_idx += 1
+        s_data = np.array(s_data['mean_rate'])[0]   
+        sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax2,
+                     y = [ns_data, s_data], color='k', linewidth = 0.2)
+        sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax2,
+                      y = [ns_data, s_data], color='k', s = 3)
+        tune_idx+=1
 
 
 ax2.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
@@ -283,6 +287,7 @@ f2ds.savefig(f'{save_dir}figure02_D_shuffled.svg', dpi=200)
 f2ds.savefig(f'{save_dir}figure02_D_shuffled.png', dpi=200)
 
 
+
 # =============================================================================
 # Figure 2E and 2F
 # =============================================================================
@@ -363,8 +368,10 @@ pearson_r.columns = ['distance', 'grid_seed',
                      's_grid_phase', 's_granule_phase']
 
 
-f2e, ax1 = plt.subplots(figsize=(4*cm, 4*cm))
-f2f, ax3 = plt.subplots(figsize=(4*cm, 4*cm))
+f2e, (ax1, ax2) = plt.subplots(1, 2, figsize=(6*cm, 4*cm),
+                               gridspec_kw={'width_ratios': [6, 1]})
+f2f, (ax3, ax4) = plt.subplots(1, 2,  figsize=(6*cm, 4*cm),
+                               gridspec_kw={'width_ratios': [6, 1]})
 
 hue = list(pearson_r['distance'])
 # rate
@@ -388,8 +395,9 @@ ax1.plot(s_rate[0][0], s_rate[0][1], 'k',
          linestyle=(0, (6, 2)), linewidth=2)
 ax1.set_ylabel('$R_{out}$')
 ax1.set_xlabel('$R_{in}$')
+
 norm = mpl.colors.SymLogNorm(vmin=0.5, vmax=65, linthresh=0.1)
-# f2e.colorbar(matplotlib.cm.ScalarMappable(cmap=my_cmap, norm=norm), ax=ax1)
+f2e.colorbar(matplotlib.cm.ScalarMappable(cmap=my_cmap, norm=norm), ax=ax1)
 
 # phase
 sns.scatterplot(ax=ax3,
@@ -411,12 +419,12 @@ ax3.plot(s_phase[0][0], s_phase[0][1], 'k',
 ax3.set_ylabel('$R_{out}$')
 ax3.set_xlabel('$R_{in}$')
 norm = mpl.colors.SymLogNorm(vmin=0.5, vmax=65, linthresh=0.1)
-# f2f.colorbar(matplotlib.cm.ScalarMappable(cmap=my_cmap_2, norm=norm), ax=ax3)
+f2f.colorbar(matplotlib.cm.ScalarMappable(cmap=my_cmap_2, norm=norm), ax=ax3)
+
 # =============================================================================
 # mean delta R
 # =============================================================================
-ax2 = inset_axes(ax1,  "20%", "50%", loc="upper right", borderpad=0)
-ax4 = inset_axes(ax3,  "20%", "50%", loc="upper right", borderpad=0)
+
 grid_seeds = np.arange(1, 11, 1)
 delta_s_rate = []
 delta_s_phase = []
@@ -455,28 +463,23 @@ s_deltaR['grid_seed'] = s_deltaR['grid_seed'].astype('float')
 my_pal1 = {'#26b29d'}
 my_pal2 = {'#ff7900'}
 
-sns.boxplot(x='code', y='mean deltaR', ax=ax2, linewidth=0.5, fliersize=0.5,
-            data=s_deltaR[s_deltaR['code'] == 'rate'], palette=my_pal1, 
-            width=0.5)
-sns.scatterplot(x='code', y='mean deltaR', ax=ax2, s=3,
+sns.boxplot(x='code', y='mean deltaR', ax=ax2, linewidth=1, fliersize=1,
+            data=s_deltaR[s_deltaR['code'] == 'rate'], palette=my_pal1)
+sns.scatterplot(x='code', y='mean deltaR', ax=ax2, s=5,
             data=s_deltaR[s_deltaR['code'] == 'rate'], color='black')
 
-sns.boxplot(x='code', y='mean deltaR', ax=ax4, linewidth=0.5, fliersize=0.5,
-            data=s_deltaR[s_deltaR['code'] == 'phase'], palette=my_pal2,
-            width=0.5)
-sns.scatterplot(x='code', y='mean deltaR', ax=ax4, s=3,
+sns.boxplot(x='code', y='mean deltaR', ax=ax4, linewidth=1, fliersize=1,
+            data=s_deltaR[s_deltaR['code'] == 'phase'], palette=my_pal2)
+sns.scatterplot(x='code', y='mean deltaR', ax=ax4, s=5,
             data=s_deltaR[s_deltaR['code'] == 'phase'], color='black')
 
+
+# ax2.set_ylim([0, 0.15])
+# ax4.set_ylim([0, 0.15])
 ax2.set_ylabel('mean $\u0394R$')
-ax2.set(xticklabels=[])  # remove the tick labels
 ax4.set_ylabel('mean $\u0394R$')
-ax4.set_xlabel('')
-ax2.yaxis.set_label_position("right")
-ax4.yaxis.set_label_position("right")
-sns.despine(ax=ax1)
-sns.despine(ax=ax2, right=False, left=True)
-sns.despine(ax=ax3)
-sns.despine(ax=ax4, right=False, left=True)
+sns.despine(fig=f2e)
+sns.despine(fig=f2f)
 f2f.subplots_adjust(left=0.2, bottom=0.3, right=0.9, top=0.9, wspace=1)
 f2e.subplots_adjust(left=0.2, bottom=0.3, right=0.9, top=0.9, wspace=1)
 _adjust_box_widths(f2e, 0.7)
@@ -489,7 +492,6 @@ f2f.savefig(f'{save_dir}figure02_F.svg', dpi=200)
 f2f.savefig(f'{save_dir}figure02_F.png', dpi=200)
 
 
-
 # =============================================================================
 # Figure 2G
 # =============================================================================
@@ -497,6 +499,7 @@ granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 
 fname = results_dir + 'excel/mean_deltaR_2000ms_75vsall.xlsx'
 all_mean_deltaR = pd.read_excel(fname, index_col=0)
+granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 f2g, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
 
 sns.boxplot(x='tuning', y='mean deltaR', hue='shuffling', ax=ax, zorder=1,
@@ -532,11 +535,10 @@ ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
 handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles[:2], labels[:2], bbox_to_anchor=(0, 1.4),
-          loc='upper left', borderaxespad=0., title=None, prop={'size': 8})
+          loc='upper left', borderaxespad=0., title=None, prop={'size': 6})
 ax.set_ylabel('Mean Delta R')
 f2g.subplots_adjust(left=0.35, bottom=0.3, right=0.9, top=0.8)
 sns.despine(fig=f2g)
-_adjust_box_widths(f2g, 0.7)
 plt.rcParams["svg.fonttype"] = "none"
 f2g.savefig(f'{save_dir}figure02_G.svg', dpi=200)
 f2g.savefig(f'{save_dir}figure02_G.png', dpi=200)
@@ -552,7 +554,7 @@ spatial bin = 5cm'''
 
 grid_pal = {'non-shuffled': '#716969', 'shuffled': '#a09573'}
 granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
-legend_size = 8
+legend_size = 6
 
 fname = results_dir + 'excel/figure_2I_skaggs_non-adjusted.xlsx'
 df_skaggs = pd.read_excel(fname, index_col=0)
@@ -567,7 +569,7 @@ f2h, (ax1, ax2) = plt.subplots(1,2, gridspec_kw={'width_ratios': [1, 4]},
 
 sns.boxplot(x='cell', y='info', hue='shuffling', ax=ax1, zorder=1,
             data=grid_info, linewidth=0.4, fliersize=1, palette=grid_pal)
-loc = 0.4
+loc = 0.5
 tune_idx = 0
 tunings = ['full granule', 'no-feedforward granule',
            'no-feedback granule', 'disinhibited granule']
@@ -631,7 +633,6 @@ ax2.set_ylabel('info (bits/AP)')
 
 f2h.subplots_adjust(bottom=0.3, left=0.21, wspace=1, top=0.75)
 sns.despine(fig=f2h)
-_adjust_box_widths(f2h, 0.7)
 plt.rcParams["svg.fonttype"] = "none"
 f2h.savefig(f'{save_dir}figure02_H.svg', dpi=200)
 f2h.savefig(f'{save_dir}figure02_H.png', dpi=200)
@@ -643,7 +644,7 @@ f2h.savefig(f'{save_dir}figure02_H.png', dpi=200)
 
 # Info in differently tuned networks with mean between 0.2-0.3
 granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
-legend_size = 8
+legend_size = 6
 
 fname = results_dir + 'excel/fig2j_adjusted-filtered-info.xlsx'
 dfa = pd.read_excel(fname, index_col=0)
@@ -691,7 +692,6 @@ ax.legend(handles[:2], labels[:2], bbox_to_anchor=(0, 1.5),
 ax.set_ylabel('info (bits/AP)')
 f2i.subplots_adjust(bottom=0.3, left=0.21, top=0.75)
 sns.despine(fig=f2i)
-_adjust_box_widths(f2i, 0.7)
 plt.rcParams["svg.fonttype"] = "none"
 f2i.savefig(f'{save_dir}figure02_I.svg', dpi=200)
 f2i.savefig(f'{save_dir}figure02_I.png', dpi=200)
@@ -725,10 +725,6 @@ sns.boxplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,
 sns.stripplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,
               zorder=2, data=dfa3,
               color='black', jitter=False, dodge=True, linewidth=0.1, size=2)
-sns.lineplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,
-             zorder=1, legend=False,
-             data=dfa3, linewidth=1, hue='grid_seed',
-             palette= sns.color_palette(10*['black']), alpha=0.3, ci=None)
 ax.set_ylim([1,1.4])
 ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
@@ -737,7 +733,6 @@ ax.set_ylabel('scaled value')
 ax.get_legend().remove()
 f2j.subplots_adjust(left=0.3, bottom=0.3)
 sns.despine(fig=f2j)
-_adjust_box_widths(f2j, 0.7)
 plt.rcParams["svg.fonttype"] = "none"
 f2j.savefig(f'{save_dir}figure02_J.svg', dpi=200)
 f2j.savefig(f'{save_dir}figure02_J.png', dpi=200)

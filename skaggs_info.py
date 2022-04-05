@@ -228,6 +228,9 @@ plt.title(f'Skaggs Information - Average of Population'
           +f'spatial bin = {spatial_bin} cm{phase_bin_pi}')
 
 
+df_skaggs.to_pickle('figure_2I_skaggs_non-adjusted.pkl')
+df_skaggs.to_csv('figure_2I_skaggs_non-adjusted.csv')
+df_skaggs.to_excel('figure_2I_skaggs_non-adjusted.xlsx')
 #isolated effects
 
 full_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'full granule') & 

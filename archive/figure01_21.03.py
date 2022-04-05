@@ -4,51 +4,46 @@
 """
 Figure 1 demonstrates the grid cell model with phase precession.
 """
-import numpy as np
-import seaborn as sns
-import pandas as pd
-import grid_model
-from neural_coding import load_spikes
-from figure_functions import (_make_cmap, _precession_spikes,
-                              _adjust_box_widths, _adjust_bar_widths)
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from matplotlib.colors import SymLogNorm
-import matplotlib.font_manager
+import numpy as np
+import grid_model
+from neural_coding import load_spikes
+from figure_functions import _make_cmap, _precession_spikes
+from neo.core import AnalogSignal
+import quantities as pq
+from elephant import spike_train_generation as stg
+from scipy import ndimage
+import seaborn as sns
+import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap as lcmap
 from scipy.stats import pearsonr,  spearmanr
 from scipy import stats
 import copy
+from matplotlib.colors import SymLogNorm
+import matplotlib.font_manager
 import pickle
 
 
-# file directory
+
+sns.reset_orig()
+sns.set(style='ticks', palette='deep', font='Arial',
+        font_scale=1.2, color_codes=True)
+
 results_dir = '/home/baris/results/'
 save_dir = '/home/baris/paper/figures/figure01/'
 
-# plotting settings
-sns.set(style='ticks', palette='deep', font='Arial', color_codes=True)
-mpl.rcParams['axes.linewidth'] = 0.5
-mpl.rcParams['xtick.major.size'] = 3
-mpl.rcParams['xtick.major.width'] = 1
-mpl.rcParams['xtick.minor.size'] = 3
-mpl.rcParams['xtick.minor.width'] = 1
-mpl.rcParams['ytick.major.size'] = 3
-mpl.rcParams['ytick.major.width'] = 1
-mpl.rcParams['ytick.minor.size'] = 3
-mpl.rcParams['ytick.minor.width'] = 1
-plt.rc('font', size=10) #controls default text size
-plt.rc('axes', titlesize=8) #fontsize of the title
-plt.rc('axes', labelsize=10) #fontsize of the x and y labels
-plt.rc('xtick', labelsize=10) #fontsize of the x tick labels
-plt.rc('ytick', labelsize=10) #fontsize of the y tick labels
-plt.rc('legend', fontsize=10) #fontsize of the legend
-cm=1/2.54
+
+# =============================================================================
+# =============================================================================
+# # Figure 01 C, D and E
+# =============================================================================
+# =============================================================================
 
 
 # =============================================================================
-# Figure 1C
+# 1C
 # =============================================================================
 
 spacing = [30, 50, 70, 100]
@@ -84,7 +79,7 @@ f1c.savefig(f'{save_dir}figure01_C.svg', dpi=200)
 f1c.savefig(f'{save_dir}figure01_C.png', dpi=200)
 
 # =============================================================================
-# Figure 1D
+# 1D
 # =============================================================================
 
 spacing = 20
@@ -127,32 +122,29 @@ mpl.rcParams['svg.fonttype'] = "none"
 cmap = sns.color_palette('RdYlBu_r', as_cmap=True)
 f1d, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1,
                                         gridspec_kw={'height_ratios':
-                                                     [1.2, 1, 1, 1]},
-                                        figsize=(6*cm, 10*cm))
+                                                     [1, 1, 1, 1]},
+                                        figsize=(4, 9))
+f1d.subplots_adjust(right=0.4)
+
 im1 = ax1.imshow(grid_rate[80:120, :80], cmap=cmap,
            extent=[0,4,2,0], aspect='auto')
 ax1.set_xticks([0, 1, 2, 3, 4])
 ax1.set_xticklabels([0, 10, 20, 30, 40])
 ax1.set_yticks([0, 1, 2])
-ax1.set_yticklabels([0, 10, 20])
-ax1.set_ylabel('Location (cm)')
-# ax1.set_xlabel('Location (cm)')
-ax1.set_xticklabels([])
+ax1.set_yticklabels([0, 'cm', 20], rotation=90)
+ax1.set_ylabel('Grid field')
+ax1.set_xlabel('Location (cm)')
 
-ax2.plot(rate_t_arr, grid_overall, color='#6c757d', linewidth=0.7, zorder=10)
-ax2.set_ylabel('Rate (Hz)')
+ax2.plot(rate_t_arr, grid_overall)
+ax2.set_ylabel('Frequency (Hz)')
 ax2.set_xlim([0, 2])
-ax2.set_xticklabels([])
 
-ax3.eventplot(np.array(trains[:5]), linewidth=0.7,
-              linelengths=0.5, color='#6c757d', zorder=10)
-# ax3.set_yticklabels([])
-ax3.set_ylabel('Spikes')
+ax3.eventplot(np.array(trains[:5]), linewidth=0.7, linelengths=0.5)
+ax3.set_yticklabels([])
+ax3.set_ylabel('Spike trains')
 ax3.set_xlim([0, 2])
-ax3.set_xticklabels([])
 
-ax4.plot(np.arange(0, 2, 2/2000), repeated/180,
-         linewidth=0.7, color='#6c757d', zorder=10)
+ax4.plot(np.arange(0, 2, 2/2000), repeated/180)
 ax4.set_xlabel('Time (s)')
 ax4.set_ylabel('Phase (\u03C0)')
 ax4.set_xlim([0, 2])
@@ -160,18 +152,18 @@ ax4.set_ylim([0, 2])
 
 xpos = np.arange(0, dur_s+0.1, 0.1)
 for xc in xpos:
-    ax2.axvline(xc, color='0.2', linestyle='--', linewidth=0.3)
-    ax3.axvline(xc, color="0.2", linestyle='--', linewidth=0.3)
-    ax4.axvline(xc, color="0.2", linestyle='--', linewidth=0.3)
+    ax2.axvline(xc, color='0.5', linestyle='--', linewidth=0.5)
+    ax3.axvline(xc, color="0.5", linestyle='--', linewidth=0.5)
+    ax4.axvline(xc, color="0.5", linestyle='--', linewidth=0.5)
 
-f1d.subplots_adjust(bottom=0.15, hspace=0.3, top=0.98, left=0.3, right=0.9)
+f1d.tight_layout()
 plt.rcParams["svg.fonttype"] = "none"
 f1d.savefig(save_dir+'figure01_D.svg', dpi=200)
 f1d.savefig(save_dir+'figure01_D.png', dpi=200)
 
 
 # =============================================================================
-# Figure 1E
+# 1E
 # =============================================================================
 
 # color_list = ["103900", "5b7a5b", "eae5d6", "e89005", "853512"]
@@ -240,10 +232,10 @@ for pos_peak, orientation in zip(pos_peak, orientation):
 
 
 # =============================================================================
-# Figure 1G
+# 1G
 # =============================================================================
-my_pal = {'grid': '#6c757d', 'granule': '#09316c'}
-f1g, (ax1, ax2) = plt.subplots(2,1, figsize=[4.4*cm, 5*cm])
+sns.set(style='ticks', palette='deep', font='Arial',
+        font_scale=1.5, color_codes=True)
 
 trajectories = [75]
 n_samples = 20
@@ -264,6 +256,7 @@ for grid_seed in grid_seeds:
 
 grid_counts_byseed = []
 gra_counts_byseed = []
+
 for grid_seed in range(10):
     grid_counts = []
     granule_counts = []
@@ -288,34 +281,47 @@ cell = 10*['grid'] + 10*['granule']
 grid_seeds = list(np.arange(1, 11, 1))
 grid_seeds.extend(grid_seeds)
 act_cell_df = np.stack((grid_counts_byseed, cell, grid_seeds)).T
+
 act_cell_df = pd.DataFrame(act_cell_df, columns=('active cells %',
                                                  'population',
                                                  'grid seed'))
 act_cell_df['active cells %'] = act_cell_df['active cells %'].astype('float')
 act_cell_df['grid seed'] = act_cell_df['grid seed'].astype('float')
-
+my_pal = {'grid': '#716969', 'granule': '#09316c'}
+f1g, (ax1, ax2) = plt.subplots(2,1, figsize=[5,6])
 sns.despine(fig=f1g)
-sns.barplot(x='population', y='active cells %', ax=ax1, zorder=1, errwidth=0.6,
+sns.barplot(x='population', y='active cells %', ax=ax1, zorder=1,
             data=act_cell_df, palette=my_pal, ci='sd', capsize=.2)
 sns.scatterplot(x='population', y='active cells %', ax=ax1, zorder=10,
-                data=act_cell_df, color='black', s=3)
+                data=act_cell_df, color='black')
+
 
 all_mean_rates = pd.read_excel(results_dir + 
                                'excel/mean_firing_rates.xlsx', index_col=0)
+
 mean_rates = all_mean_rates[(all_mean_rates['shuffling']=='non-shuffled') &
                             (all_mean_rates['tuning']=='full')]
 
-sns.barplot(x='cell', y='mean_rate', ax=ax2, zorder=1, errwidth=0.6,
+sns.barplot(x='cell', y='mean_rate', ax=ax2, zorder=1,
             data=mean_rates, palette=my_pal, ci='sd', capsize=.2)
 sns.scatterplot(x='cell', y='mean_rate', ax=ax2, zorder=10,
-                data=mean_rates, ci='sd', color='black', s=3)
-ax1.set_xticklabels([])
-ax2.set_xticklabels(['EC', 'GC'])
-ax1.set(xlabel=None)
-ax2.set(xlabel=None)
-f1g.subplots_adjust(bottom=0.25, hspace=0.4, top=0.98, left=0.4, right=0.9)
-_adjust_bar_widths(ax1, 0.4)
-_adjust_bar_widths(ax2, 0.4)
+                data=mean_rates, ci='sd', color='black')
+
+plt.tight_layout()
+
+
+def _change_width(ax, new_value):
+    for patch in ax.patches:
+        current_width = patch.get_width()
+        diff = current_width - new_value
+        # change the bar width
+        patch.set_width(new_value)
+        # recenter the bar
+        patch.set_x(patch.get_x() + diff * .5)
+
+
+_change_width(ax1, 0.4)
+_change_width(ax2, 0.4)
 plt.rcParams["svg.fonttype"] = "none"
 f1g.savefig(f'{save_dir}figure01_G.svg', dpi=200)
 f1g.savefig(f'{save_dir}figure01_G.png', dpi=200)
@@ -358,16 +364,7 @@ f1f.savefig(f'{save_dir}figure01_F.png', dpi=200)
 # =============================================================================
 # Figure 1I and 1J
 # =============================================================================
-# pre - plotting
 
-color_list_1 =["012a4a","013a63","01497c","2a6f97","2c7da0","468faf","61a5c2"]
-color_list_2 = ['350000', '530000', 'ad1919', 'cf515f', 'e6889a']
-my_cmap = _make_cmap(color_list_1)
-my_cmap_2 = _make_cmap(color_list_2)
-
-
-f1i, ax1 = plt.subplots(figsize=(4*cm, 4*cm))
-f1j, ax3 = plt.subplots(figsize=(4*cm, 4*cm))
 
 # load data, codes
 
@@ -439,17 +436,32 @@ pearson_r.columns = ['distance', 'grid_seed',
                      'ns_grid_rate', 'ns_granule_rate',
                      'ns_grid_phase', 'ns_granule_phase']
 
+# pre - plotting
 
+sns.reset_orig()
+sns.set(style='ticks', palette='deep', font='Arial',
+        font_scale=1.5, color_codes=True)
+
+color_list_1 =["012a4a","013a63","01497c","2a6f97","2c7da0","468faf","61a5c2"]
+color_list_2 = ['350000', '530000', 'ad1919', 'cf515f', 'e6889a']
+my_cmap = _make_cmap(color_list_1)
+my_cmap_2 = _make_cmap(color_list_2)
+
+
+f1i, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5),
+                               gridspec_kw={'width_ratios': [3, 1]})
+f1j, (ax3, ax4) = plt.subplots(1, 2,  figsize=(10, 5),
+                               gridspec_kw={'width_ratios': [3, 1]})
 
 hue = list(pearson_r['distance'])
 # rate
 sns.scatterplot(ax=ax1,
                 data=pearson_r, x="ns_grid_rate", y="ns_granule_rate",
-                hue=hue, hue_norm=SymLogNorm(10), palette=my_cmap, s=1,
+                hue=hue, hue_norm=SymLogNorm(10), palette=my_cmap, s=15,
                 linewidth=0.1, alpha=0.8)
 ax1.get_legend().remove()
 ax1.plot(np.arange(-0.2, 1.1, 0.1), np.arange(-0.2, 1.1, 0.1),
-         color='#2c423f', alpha=0.4, linewidth=1)
+         color='#2c423f', alpha=0.4, linewidth=4)
 ax1.set_xlim(-0.1, 0.5)
 ax1.set_ylim(-0.1, 0.5)
 
@@ -465,16 +477,16 @@ ax1.set_ylabel('$R_{out}$')
 ax1.set_xlabel('$R_{in}$')
 
 norm = mpl.colors.SymLogNorm(vmin=0.5, vmax=65, linthresh=0.1)
-# f1i.colorbar(matplotlib.cm.ScalarMappable(cmap=my_cmap, norm=norm), ax=ax1)
+f1i.colorbar(matplotlib.cm.ScalarMappable(cmap=my_cmap, norm=norm), ax=ax1)
 
 # phase
 sns.scatterplot(ax=ax3,
                 data=pearson_r, x="ns_grid_phase", y="ns_granule_phase",
-                hue=hue, hue_norm=SymLogNorm(10), palette=my_cmap_2, s=1,
+                hue=hue, hue_norm=SymLogNorm(10), palette=my_cmap_2, s=15,
                 linewidth=0.1, alpha=0.8)
 ax3.get_legend().remove()
 ax3.plot(np.arange(-0.2, 1.1, 0.1), np.arange(-0.2, 1.1, 0.1),
-         color='#2c423f', alpha=0.4, linewidth=1)
+         color='#2c423f', alpha=0.4, linewidth=4)
 ax3.set_xlim(-0.1, 0.5)
 ax3.set_ylim(-0.1, 0.5)
 
@@ -487,13 +499,12 @@ ax3.plot(ns_phase[0][0], ns_phase[0][1], 'k',
 ax3.set_ylabel('$R_{out}$')
 ax3.set_xlabel('$R_{in}$')
 norm = mpl.colors.SymLogNorm(vmin=0.5, vmax=65, linthresh=0.1)
-# f1j.colorbar(matplotlib.cm.ScalarMappable(cmap=my_cmap_2, norm=norm), ax=ax3)
+f1j.colorbar(matplotlib.cm.ScalarMappable(cmap=my_cmap_2, norm=norm), ax=ax3)
 
 # =============================================================================
 # mean delta R
 # =============================================================================
-ax2 = inset_axes(ax1,  "20%", "50%", loc="upper right", borderpad=0)
-ax4 = inset_axes(ax3,  "20%", "50%", loc="upper right", borderpad=0)
+
 grid_seeds = np.arange(1, 11, 1)
 delta_s_rate = []
 delta_ns_rate = []
@@ -534,33 +545,25 @@ ns_deltaR['grid_seed'] = ns_deltaR['grid_seed'].astype('float')
 my_pal1 = {'#01497c'}
 my_pal2 = {'#ad1919'}
 
-sns.boxplot(x='code', y='mean deltaR', ax=ax2, linewidth=0.5, fliersize=0.5,
-            data=ns_deltaR[ns_deltaR['code'] == 'rate'], palette=my_pal1,
-            width=0.5)
-sns.scatterplot(x='code', y='mean deltaR', ax=ax2, s=3,
+sns.boxplot(x='code', y='mean deltaR', ax=ax2,
+            data=ns_deltaR[ns_deltaR['code'] == 'rate'], palette=my_pal1)
+sns.scatterplot(x='code', y='mean deltaR', ax=ax2,
             data=ns_deltaR[ns_deltaR['code'] == 'rate'], color='black')
 
-sns.boxplot(x='code', y='mean deltaR', ax=ax4, linewidth=0.5, fliersize=0.5,
-            data=ns_deltaR[ns_deltaR['code'] == 'phase'], palette=my_pal2,
-            width=0.5)
-sns.scatterplot(x='code', y='mean deltaR', ax=ax4, s=3,
+sns.boxplot(x='code', y='mean deltaR', ax=ax4,
+            data=ns_deltaR[ns_deltaR['code'] == 'phase'], palette=my_pal2)
+sns.scatterplot(x='code', y='mean deltaR', ax=ax4,
             data=ns_deltaR[ns_deltaR['code'] == 'phase'], color='black')
 
 
+ax2.set_ylim([0, 0.15])
+ax4.set_ylim([0, 0.15])
 ax2.set_ylabel('mean $\u0394R$')
-ax2.set(xticklabels=[])  # remove the tick labels
 ax4.set_ylabel('mean $\u0394R$')
-ax4.set_xlabel('')
-ax2.yaxis.set_label_position("right")
-ax4.yaxis.set_label_position("right")
-sns.despine(ax=ax1)
-sns.despine(ax=ax2, right=False, left=True)
-sns.despine(ax=ax3)
-sns.despine(ax=ax4, right=False, left=True)
-f1i.subplots_adjust(left=0.2, bottom=0.3, right=0.9, top=0.9, wspace=1)
-f1j.subplots_adjust(left=0.2, bottom=0.3, right=0.9, top=0.9, wspace=1)
-_adjust_box_widths(f1i, 0.7)
-_adjust_box_widths(f1j, 0.7)
+f1i.tight_layout()
+sns.despine(fig=f1i)
+f1j.tight_layout()
+sns.despine(fig=f1j)
 plt.rcParams["svg.fonttype"] = "none"
 f1i.savefig(f'{save_dir}figure01_I_cbar.svg', dpi=200)
 f1i.savefig(f'{save_dir}figure01_I_cbar.png', dpi=200)

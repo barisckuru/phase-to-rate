@@ -24,7 +24,7 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 n_samples = 20
 grid_seeds = np.arange(1,11,1)
-tuning = 'full'
+tuning = 'disinhibited'
 all_codes = {}
 for grid_seed in grid_seeds:
     path = "/home/baris/results/"+str(tuning)+"/collective/grid-seed_duration_shuffling_tuning_"
@@ -90,7 +90,8 @@ for grid_seed in grid_seeds:
                       'phase': s_granule_phase_code}
 
 
-
+# with open(f'neural_codes_{tuning}.pkl', 'wb') as handle:
+#     pickle.dump(all_codes, handle)
 
    
 # 75 vs all in all time bins
@@ -170,8 +171,6 @@ nonshuffled_granule_phase = (df.loc[(df['cell_type'] == 'granule') &
                                     (df['shuffling'] == 'non-shuffled')]
                                     ['pearson_r'].reset_index(drop=True))
 
-
-
 pearson_r = pd.concat([
     shuffled_grid_rate, shuffled_granule_rate,
     nonshuffled_grid_rate, nonshuffled_granule_rate,
@@ -183,7 +182,6 @@ pearson_r.columns = ['distance', 'grid_seed',
                             's_grid_phase', 's_granule_phase',
                             'ns_grid_phase', 'ns_granule_phase'
                             ]
-
 
 fig2, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
 fig2.suptitle(
@@ -211,7 +209,6 @@ sns.scatterplot(ax=ax4,
               data=pearson_r, x="ns_grid_phase", y="ns_granule_phase",
               hue=hue, hue_norm=SymLogNorm(10), palette='OrRd', s=25)
 
-
 for ax in fig2.axes:
     ax.get_legend().remove()
     ax.plot(np.arange(-0.2,1.1,0.1),np.arange(-0.2,1.1,0.1),'g--', linewidth=1)
@@ -223,9 +220,18 @@ s_rate = stats.binned_statistic(pearson_r['s_grid_rate'],
                                 list((pearson_r['s_grid_rate'],
                                       pearson_r['s_granule_rate'])), 'mean',
                                 bins=[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
-s_phase = stats.binned_statistic(pearson_r['s_grid_phase'], list((pearson_r['s_grid_phase'], pearson_r['s_granule_phase'])), 'mean', bins=[0,0.1,0.2,0.3,0.4])
-ns_rate = stats.binned_statistic(pearson_r['ns_grid_rate'], list((pearson_r['ns_grid_rate'], pearson_r['ns_granule_rate'])), 'mean', bins=[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
-ns_phase = stats.binned_statistic(pearson_r['ns_grid_phase'], list((pearson_r['ns_grid_phase'], pearson_r['ns_granule_phase'])), 'mean', bins=[0,0.1,0.2,0.3,0.4,0.5])
+s_phase = stats.binned_statistic(pearson_r['s_grid_phase'],
+                                 list((pearson_r['s_grid_phase'],
+                                       pearson_r['s_granule_phase'])), 'mean',
+                                 bins=[0,0.1,0.2,0.3,0.4])
+ns_rate = stats.binned_statistic(pearson_r['ns_grid_rate'],
+                                 list((pearson_r['ns_grid_rate'],
+                                       pearson_r['ns_granule_rate'])), 'mean',
+                                 bins=[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8])
+ns_phase = stats.binned_statistic(pearson_r['ns_grid_phase'],
+                                  list((pearson_r['ns_grid_phase'],
+                                        pearson_r['ns_granule_phase'])),
+                                  'mean', bins=[0,0.1,0.2,0.3,0.4,0.5])
 
 ax1.plot(s_rate[0][0], s_rate[0][1], 'k', linestyle=(0, (6, 2)), linewidth=2)
 ax2.plot(ns_rate[0][0], ns_rate[0][1], 'k', linestyle=(0, (6, 2)), linewidth=2)
@@ -243,13 +249,8 @@ plt.tight_layout()
 # mean delta R
 # =============================================================================
 
-
 import copy
 data = copy.deepcopy(r_data)
-
-
-
-
 
 df = pd.DataFrame(r_data,
                   columns=['distance', 'pearson_r', 'spearman_r',
@@ -293,8 +294,6 @@ nonshuffled_granule_phase = (df.loc[(df['cell_type'] == 'granule') &
                                     (df['shuffling'] == 'non-shuffled')]
                                     ['pearson_r'].reset_index(drop=True))
 
-
-
 pearson_r = pd.concat([
     shuffled_grid_rate, shuffled_granule_rate,
     nonshuffled_grid_rate, nonshuffled_granule_rate,
@@ -306,7 +305,6 @@ pearson_r.columns = ['distance', 'grid_seed',
                             's_grid_phase', 's_granule_phase',
                             'ns_grid_phase', 'ns_granule_phase'
                             ]
-
 
 delta_s_rate = []
 delta_ns_rate = []

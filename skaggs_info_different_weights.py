@@ -13,6 +13,7 @@ import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import copy
 
 
 def load_spikes(grid_seed, network_type, shuffling, pp_weight):
@@ -131,6 +132,15 @@ weights['no-feedforward'] = [0.0007, 0.00075, 0.00083, 0.0009, 0.00097, 0.0015, 
 weights['no-feedback'] = [0.00066, 0.0007, 0.00074, 0.00078, 0.00085, 0.0009, 0.00095, 0.00105, 0.00111]
 weights['disinhibited'] = [0.00059, 0.00061, 0.00065, 0.00068, 0.00073, 0.00077, 0.00082, 0.00086, 0.0009]
 
+
+
+weights = {}
+weights['full'] = [0.0009, 0.00105]
+weights['no-feedforward'] = [0.0007, 0.00075]
+weights['no-feedback'] = [0.00066, 0.0007]
+weights['disinhibited'] = [0.00059, 0.00061]
+
+
 tuned = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
 shuffling = ['non-shuffled', 'shuffled']
 grid_seeds = [1,2,3,4,5,6,7,8,9,10]
@@ -184,6 +194,91 @@ df = pd.DataFrame(all_skaggs, columns=['grid info',
 df['mean rate'] = df['mean rate'].astype('float')
 df['info (bits/AP)'] = df['info (bits/AP)'].astype('float')
 
+# filtering data for matching pair as grid seed
+
+dfa = copy.deepcopy(df)
+dfa = df.loc[(df['mean rate']>0.2) & (df['mean rate']<0.3)]
+dfa['weight_n_seed'] = dfa['grid_seed'] + dfa['weight']
+for seed in dfa['weight_n_seed']:
+    for tune in dfa['tuning']:
+        if dfa.loc[(dfa['weight_n_seed'] == seed) & (dfa['tuning'] == tune)].shape[0] == 1:
+            dfa = dfa.drop(dfa[dfa['weight_n_seed'] == seed].index)
+
+
+dfa.to_excel('fig2j_adjusted-filtered-info.xlsx')
+dfa.to_pickle('fig2j_adjusted-filtered-info.pkl')
+    
+# =============================================================================
+# boxplot
+# =============================================================================
+
+realistic_means = copy.deepcopy(dfa)
+plt.close('all')
+f, ax = plt.subplots()
+sns.boxplot(x='tuning', y='info (bits/AP)', hue='shuffling', ax=ax, data=realistic_means)
+plt.title('Info in differently tuned networks with mean between 0.2-0.3 ')
+
+loc = 0.4
+tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
+for grid in grid_seeds:
+    tune_idx = 0
+    for tuning in tunings:
+        ns_data = realistic_means.loc[(realistic_means['shuffling']=='non-shuffled')
+                                      &
+                                      (realistic_means['tuning']==tuning)
+                                      &
+                                      (realistic_means['grid_seed']==grid)]
+        s_data = realistic_means.loc[(realistic_means['shuffling']=='shuffled')
+                                      &
+                                      (realistic_means['tuning']==tuning)
+                                      &
+                                      (realistic_means['grid_seed']==grid)]
+        
+        
+        if (np.array(ns_data['info (bits/AP)']).size > 0 and
+            np.array(s_data['info (bits/AP)']).size > 0):
+            ns_info = np.array(ns_data['info (bits/AP)'])[0]
+            s_info = np.array(s_data['info (bits/AP)'])[0]   
+            sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx],
+                         y = [ns_info, s_info], color='k', linewidth = 0.5)
+            sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx],
+                          y = [ns_info, s_info], color='k', s = 20)
+        tune_idx+=1
+
+
+
+# figure 2K nonshuffled/shuffled
+dfa2 = copy.deepcopy(dfa)
+dfa2_ns = dfa2[dfa2['shuffling']=='non-shuffled'].reset_index(drop=True)
+dfa2_s = dfa2[dfa2['shuffling']=='shuffled'].reset_index(drop=True)
+dfa2_div = dfa2_ns['info (bits/AP)']/dfa2_s['info (bits/AP)']
+dfa3 = copy.deepcopy(dfa2_ns)
+dfa3['info (bits/AP)'] = dfa2_div
+dfa3.rename(columns={'info (bits/AP)':'scaled value (non-shuffled/shuffled)'},
+            inplace=True)
+dfa3['shuffling'] = 'nonshuffled/shuffled'
+
+plt.close('all')
+f2K, ax = plt.subplots()
+sns.boxplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,
+            data=dfa3, color='green')
+plt.title('Nonhuffled Information Scaled by Shuffled Information \n'+
+          ' differently tuned networks with mean between 0.2-0.3 ')
+sns.scatterplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,
+                data=dfa3, color='black', alpha=0.8)
+ax.set_ylim([1,1.4])
+loc = 0.4
+tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
+for grid in grid_seeds:
+    tune_idx = 0
+    for tuning in tunings:
+        data = dfa3.loc[(realistic_means['tuning'] == tuning)
+                        & (realistic_means['grid_seed'] == grid)]
+        
+        scaled_info = data['scaled value (non-shuffled/shuffled)']
+        sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx],
+                        y = scaled_info, color='k', s = 20)
+        tune_idx+=1
 
 
 df_full = df.loc[df['tuning'] == 'full']
@@ -203,11 +298,103 @@ sns.scatterplot(x='mean rate', y='info (bits/AP)', hue='shuffling', ax=ax3, data
 sns.scatterplot(x='mean rate', y='info (bits/AP)', hue='shuffling', ax=ax4, data=df_disinh)
 
 
+
+
+# =============================================================================
+# violin plot
+# =============================================================================
+
+#violin plot with lines
+realistic_means = copy.deepcopy(dfa)
+plt.close('all')
 f, ax = plt.subplots()
-realistic_means = df.loc[(df['mean rate']>0.2) & (df['mean rate']<0.3)]
+# realistic_means = df.loc[(df['mean rate']>0.2) & (df['mean rate']<0.3)]
 # realistic_means = realistic_means.sort_values(by=['tuning', 'shuffling']). reset_index()
 sns.violinplot(x='tuning', y='info (bits/AP)', hue='shuffling', ax=ax, data=realistic_means)
 plt.title('Info in differently tuned networks with mean between 0.2-0.3 ')
+
+loc = 0.4
+    
+tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
+for grid in grid_seeds:
+    tune_idx = 0
+    for tuning in tunings:
+        ns_data = realistic_means.loc[(realistic_means['shuffling']=='non-shuffled')
+                                      &
+                                      (realistic_means['tuning']==tuning)
+                                      &
+                                      (realistic_means['grid_seed']==grid)]
+        s_data = realistic_means.loc[(realistic_means['shuffling']=='shuffled')
+                                      &
+                                      (realistic_means['tuning']==tuning)
+                                      &
+                                      (realistic_means['grid_seed']==grid)]
+        
+        
+        if (np.array(ns_data['info (bits/AP)']).size > 0 and
+            np.array(s_data['info (bits/AP)']).size > 0):
+            ns_info = np.array(ns_data['info (bits/AP)'])[0]
+            s_info = np.array(s_data['info (bits/AP)'])[0]   
+            sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx],
+                         y = [ns_info, s_info], color='k', linestyle = '--', linewidth = 0.5)
+            # sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx],
+            #              y = [ns_info, s_info], color='k', linewidth = 0.5)
+        tune_idx+=1
+
+
+#violin with swarmplot
+
+plt.close('all')
+f, ax = plt.subplots()
+realistic_means = df.loc[(df['mean rate']>0.2) & (df['mean rate']<0.3)]
+# realistic_means = realistic_means.sort_values(by=['tuning', 'shuffling']). reset_index()
+sns.violinplot(x='tuning', y='info (bits/AP)', hue='shuffling', ax=ax, inner=None, data=realistic_means)
+plt.title('Info in differently tuned networks with mean between 0.2-0.3 ')
+
+ax = sns.swarmplot(data=realistic_means, x='tuning', y='info (bits/AP)',
+                   hue='shuffling', color='black', dodge=True)
+ax.get_legend().set_visible(False)
+
+
+# =============================================================================
+# barplot
+# =============================================================================
+
+plt.close('all')
+f, ax = plt.subplots()
+sns.barplot(x='tuning', y='info (bits/AP)',
+            hue='shuffling', ax=ax, data=dfa)
+plt.title('Info in differently tuned networks with mean between 0.2-0.3 ')
+loc = ax.patches[0].get_width()  
+tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
+for seed in dfa['grid_seed']:
+    tune_idx = 0
+    for tuning in tunings:
+        ns_data = dfa.loc[(dfa['shuffling']=='non-shuffled')
+                                      &
+                                      (dfa['tuning']==tuning)
+                                      &
+                                      (dfa['grid_seed']==seed)]
+        s_data = dfa.loc[(dfa['shuffling']=='shuffled')
+                                      &
+                                      (dfa['tuning']==tuning)
+                                      &
+                                      (dfa['grid_seed']==seed)]
+        
+        if (np.array(ns_data['info (bits/AP)']).size) > 0:
+            ns_info = np.array(ns_data['info (bits/AP)'])[0]
+            s_info = np.array(s_data['info (bits/AP)'])[0]   
+            sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx],
+                         y = [ns_info, s_info], color='k', linewidth = 0.5)
+        tune_idx+=1
+
+# =============================================================================
+# boxplot
+# =============================================================================
+
+
+
+
 
 df = pd.DataFrame(all_skaggs, columns=['grid info',
                                        'increased info (bits/AP)',
