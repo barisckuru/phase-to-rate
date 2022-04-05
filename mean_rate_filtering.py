@@ -8,12 +8,14 @@ import numpy as np
 import os
 import shelve
 import pandas as pd
+import sys
 
 
 dirname = os.path.dirname(__file__)
 path = os.path.join(
     dirname, 'data', 'tempotron')
-files = [x for x in os.listdir(path) if 'adjusted' in x]
+files = [x for x in os.listdir(path) if 'grid-seed' in x and '.dat' in x]
+
 
 grid_seed = []
 shuffling = []
@@ -43,4 +45,5 @@ d = {'grid_seed': grid_seed,
 df = pd.DataFrame(data=d)
 
 out_path = os.path.join(dirname, 'data', 'mean_rates.csv')
+df.dropna(inplace=True)
 df.to_csv(out_path)

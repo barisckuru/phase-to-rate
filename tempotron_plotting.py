@@ -49,9 +49,21 @@ df = df.drop_duplicates()
 
 rate_path = os.path.join(dirname, 'data', 'mean_rates.csv')
 df_mean_rates = pd.read_csv(rate_path, index_col=0)
-to_exclude = ((df_mean_rates['mean_rate'] < 0.2) | (df_mean_rates['mean_rate'] > 0.3))
+to_exclude = ((df_mean_rates['mean_rate'] < 0.20) | (df_mean_rates['mean_rate'] > 0.30))
 grid_seeds_excluded = df_mean_rates[to_exclude]['grid_seed'].unique()
 df.drop(df[df['grid_seed'].isin(grid_seeds_excluded)].index, inplace=True)
+df_mean_rates.drop(df_mean_rates[df_mean_rates['grid_seed'].isin(grid_seeds_excluded)].index, inplace=True)
+
+df['mean_rate'] = np.nan
+
+for index, row in df_mean_rates.iterrows():
+    target_rows = ((df['grid_seed'] == row['grid_seed']) &
+                   (df['shuffling'] == row['shuffling']) &
+                   (df['network'] == row['network'])
+                  )
+    if target_rows.sum() > 1:
+        raise ValueError()
+    df.loc[target_rows, 'mean_rate'] = row['mean_rate']
 
 plt.figure()
 sns.scatterplot(data=df, x='pre_accuracy', y='trained_accuracy', hue='shuffling')
@@ -77,7 +89,7 @@ files = {}
 taus = []
 for idx in df.index:
     fid = df.loc[idx]['file_id']
-    key = f"{fid}_{df.loc[idx]['shuffling']}"
+    key = f"{fid}_{df.loc[idx]['shuffling']}_{df.loc[idx]['network']}"
     file_path = db_path = os.path.join(
         dirname, 'data', 'arrays', fid+'.npy')
     curr_data = np.load(file_path)
@@ -87,15 +99,45 @@ for idx in df.index:
     taus.append(fit_tau)
 df['decay_tau'] = taus
 
-mean_shuffled = np.zeros(200)
-mean_nonshuffled = np.zeros(200)
+shuffled_full = []
+shuffled_adjusted = []
+nonshuffled_full = []
+nonshuffled_adjusted = []
+
 for k in files.keys():
     if 'non-shuffled' in k:
-        mean_nonshuffled += files[k][1]
+        if 'adjusted' in k:
+            nonshuffled_adjusted.append(files[k][1])
+        else:
+            nonshuffled_full.append(files[k][1])
     else:
-        mean_shuffled += files[k][1]
-mean_shuffled = mean_shuffled / 30
-mean_nonshuffled = mean_nonshuffled / 30
+        if 'adjusted' in k:
+            shuffled_adjusted.append(files[k][1])
+        else:
+            shuffled_full.append(files[k][1])
+shuffled_full = np.array(shuffled_full)
+shuffled_adjusted = np.array(shuffled_adjusted)
+nonshuffled_full = np.array(nonshuffled_full)
+nonshuffled_adjusted = np.array(nonshuffled_adjusted)
+
+x = np.arange(200)
+fig, ax = plt.subplots()
+plot_pairs = []
+legend_names = ["shuffled_full", "shuffled_adjusted", "nonshuffled_full", "nonshuffled_adjusted"]
+for idx, curr_data in enumerate([shuffled_full, shuffled_adjusted, nonshuffled_full, nonshuffled_adjusted]):
+    print(curr_data.shape[0])
+    y = (curr_data / curr_data[:,0].mean()).mean(axis=0)
+    y_err = (curr_data / curr_data[:,0].mean()).std(axis=0) / np.sqrt(curr_data.shape[0])
+    p = ax.plot(x, y, label=legend_names[idx])
+    f = ax.fill_between(x,
+                     y-y_err,
+                     y+y_err,
+                     alpha = 0.5)
+    plot_pairs.append((p, f))
+    
+ax.legend()
+ax.set_xlabel("Epoch")
+ax.set_ylabel("Normalized loss")
 
 a = df[(df['shuffling'] == 'non-shuffled')].sort_values('grid_seed')["decay_tau"]
 b = df[(df['shuffling'] == 'shuffled')].sort_values('grid_seed')["decay_tau"]
@@ -126,3 +168,19 @@ plt.ylabel("Decay tau shuffled/non-shuffled")
 a = df[(df['network'] == 'full')].sort_values('grid_seed')["decay_tau"]
 b = df[(df['network'] == 'no-feedback-adjusted')].sort_values('grid_seed')["decay_tau"]
 print(ttest_rel(a, b, alternative='less'))
+
+plt.figure()
+sns.boxplot(data=df, x='network', y='mean_rate', hue='shuffling')
+plt.ylabel("mean_rate (Hz)")
+
+plt.figure()
+sns.scatterplot(data=df, x='decay_tau', y='mean_rate', hue='network')
+
+plt.figure()
+sns.scatterplot(data=df, x='mean_rate', y='decay_tau', hue='network')
+
+plt.figure()
+sns.scatterplot(data=non_shuffled, x='decay_tau_norm', y='mean_rate', hue='network')
+plt.ylabel("mean_rate (Hz)")
+
+
