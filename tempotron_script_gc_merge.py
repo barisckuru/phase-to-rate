@@ -41,7 +41,7 @@ V_rest = 0.0  # Resting potential
 learning_rate = 1e-3
 n_cells = 2000
 threshold = 50
-tau = 30.0
+tau = 10.0
 tau_s = tau / 2.0
 n_merge = 50
 # efficacies = 1.8 * np.random.random(n_cells) - 0.50
@@ -82,6 +82,7 @@ pre_accuracy = tempotron.accuracy(all_spikes)
 print("Pre-training accuracy: " + 
       str(pre_accuracy))
 tempotron.plot_membrane_potential(0, total_time, all_spikes[0][0])
+sys.exit()
 training_result = tempotron.train(all_spikes, epochs, learning_rate=learning_rate)
 pre_loss = training_result[1][0]
 trained_loss = training_result[1][-1]
