@@ -1,0 +1,15 @@
+name: phasetorate
+channels:
+  - conda-forge
+  - pypi
+  - defaults
+dependencies:
+  - numpy
+  - pandas
+  - matplotlib
+  - scipy
+  - scikit-image
+  - pip
+  - pip:
+    - elephant
+    - neuron
