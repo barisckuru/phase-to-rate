@@ -15,5 +15,6 @@ Coming soon.
 
 # Authors
 Barış Can Kuru - [Institute of Experimental Epileptology and Cognition Research](https://eecr-bonn.de/)
+
 Daniel Müller-Komorowska - [Institute of Experimental Epileptology and Cognition Research](https://eecr-bonn.de/)
 
