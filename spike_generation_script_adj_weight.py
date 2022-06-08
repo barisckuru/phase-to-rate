@@ -17,20 +17,15 @@ from pydentate_integrate import granule_simulate
 import os
 import glob
 
-start = time.time()
-
 """Setup"""
-neuron_tools.load_compiled_mechanisms(
-    path="/home/baris/pydentate/mechs/x86_64/libnrnmech.so"
-)
-
+neuron_tools.load_compiled_mechanisms()
 
 """Parameters"""
 # grid_seeds = [1,2,3,4,5,6,7,8,9,10]
 
 # grid_seeds = [11,12,13,14,15,16,17,18,19,20]
 
-grid_seeds = [21,22,23,24,25,26,27,28,29,30]
+grid_seeds = np.arange(1, 31, 1)
 
 # shuffling = "non-shuffled"
 shuffling = "shuffled"

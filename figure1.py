@@ -21,11 +21,12 @@ from scipy.stats import pearsonr,  spearmanr
 from scipy import stats
 import copy
 import pickle
+import os
 
-
-# file directory
-results_dir = '/home/baris/results/'
-save_dir = '/home/baris/paper/figures/figure01/'
+# Where is the data and where will figure be saved
+dirname = os.path.dirname(__file__)
+results_dir = os.path.join(dirname, 'data')
+save_dir = dirname
 
 # plotting settings
 sns.set(style='ticks', palette='deep', font='Arial', color_codes=True)
@@ -121,7 +122,6 @@ means = [np.mean(i) for i in phases]
 repeated = np.repeat(means, 100)
 
 # plotting
-
 plt.close('all')
 mpl.rcParams['svg.fonttype'] = "none"
 cmap = sns.color_palette('RdYlBu_r', as_cmap=True)
