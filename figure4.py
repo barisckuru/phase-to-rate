@@ -97,29 +97,6 @@ shuffled = df[df['shuffling'] == 'shuffled'].sort_values(['grid_seed', 'network'
 non_shuffled = df[df['shuffling'] == 'non-shuffled'].sort_values(['grid_seed', 'network'])
 
 non_shuffled['decay_tau_norm'] = non_shuffled['decay_tau'].to_numpy() / shuffled['decay_tau'].to_numpy()
-"""
-plt.figure()
-sns.boxplot(data=non_shuffled, x='network', y='decay_tau_norm')
-plt.ylabel("Decay tau shuffled/non-shuffled")
-
-a = df[(df['network'] == 'full')].sort_values('grid_seed')["decay_tau"]
-b = df[(df['network'] == 'no-feedback-adjusted')].sort_values('grid_seed')["decay_tau"]
-print(ttest_rel(a, b, alternative='less'))
-
-plt.figure()
-sns.boxplot(data=df, x='network', y='mean_rate', hue='shuffling')
-plt.ylabel("mean_rate (Hz)")
-
-plt.figure()
-sns.scatterplot(data=df, x='decay_tau', y='mean_rate', hue='network')
-
-plt.figure()
-sns.scatterplot(data=df, x='mean_rate', y='decay_tau', hue='network')
-
-plt.figure()
-sns.scatterplot(data=non_shuffled, x='decay_tau_norm', y='mean_rate', hue='network')
-plt.ylabel("mean_rate (Hz)")
-"""
 
 shuffled_full = []
 shuffled_adjusted = []

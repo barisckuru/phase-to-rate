@@ -277,7 +277,6 @@ sns.catplot(x='isolated', y='info', hue='shuffling', data=info, ax=ax, kind='bar
 
 
 #save data
-
 with pd.ExcelWriter('skaggs_results.xlsx') as writer:
     df_skaggs.to_excel(writer, sheet_name='skaggs information')
     info.to_excel(writer, sheet_name='isolated inhibition')

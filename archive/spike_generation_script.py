@@ -78,7 +78,6 @@ parameters = {
 print("grid", grid_seeds, "poiss", poisson_seeds,
       "traj", trajectories, "dur", dur_ms)
 
-
 for grid_seed in grid_seeds:
     save_dir = (f'/home/baris/results/{network_type}/seperate/seed_'
                 + str(grid_seed) + '/')
@@ -130,8 +129,6 @@ for grid_seed in grid_seeds:
     storage["parameters"] = parameters
     print("seed " + str(grid_seed) + " completed")
     storage.close()
-
-
 
 stop = time.time()
 time_sec = stop - start

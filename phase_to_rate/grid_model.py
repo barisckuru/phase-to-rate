@@ -465,7 +465,7 @@ def grid_simulate(
     T = 1 / f
 
     trajs = np.array(trajs)
-    print(trajs)
+
     n_traj = len(trajs)
 
     if type(poiss_seeds) is int:

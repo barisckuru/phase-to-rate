@@ -68,16 +68,15 @@ parameters = {
 }
 
 """IMPORTANT NOTE ON GC RATE ADJUSTMENT
-
-
+TODO
 """
 
 verbose = True
 
 """Start simulating each grid seed"""
 for grid_seed in grid_seeds:
-    file_name = ("grid-seed_trajectory_poisson-seeds_duration_shuffling_tuning_" +
-        f"{grid_seed}_{trajectories}_{poisson_seeds[0]}-{poisson_seeds[-1]}_{parameters['dur_ms']}_{shuffling}_{network_type}")
+    file_name = ("grid-seed_trajectory_poisson-seeds_duration_shuffling_tuning_pp-weight_" +
+        f"{grid_seed}_{trajectories}_{poisson_seeds[0]}-{poisson_seeds[-1]}_{parameters['dur_ms']}_{shuffling}_{network_type}_{parameters['pp_weight']}")
     file_path = os.path.join(results_dir, file_name)
 
     if verbose: print(f"Start simulating {file_name}")
