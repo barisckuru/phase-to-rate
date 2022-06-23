@@ -1,0 +1,6 @@
+datajoint>=0.13
+scipy
+numpy
+pandas
+matplotlib
+pydentate @ git+https://github.com/danielmk/pydentate.git@master

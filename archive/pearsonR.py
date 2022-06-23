@@ -19,7 +19,6 @@ from matplotlib.colors import SymLogNorm, PowerNorm, Normalize
 
 
 #load data, codes
-
 trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
                 71, 70, 69, 68, 67, 66, 65, 60, 30, 15]
 n_samples = 20

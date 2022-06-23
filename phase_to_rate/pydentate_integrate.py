@@ -107,38 +107,3 @@ def granule_simulate(
     neuron_tools.run_neuron_simulator(t_stop=dur_ms)
     granule_spikes = nw.populations[0].get_timestamps()
     return granule_spikes
-
-
-    # # Handle the different cases of inhibition
-    # if network_type == "no-feedback":
-    #     # Set GC to MC weight to 0
-    #     for syn in nw.populations[0].connections[24].netcons:
-    #         print(syn.weight[0])
-    #         syn.weight[0] = 0.0
-    #     # Set GC to BC weight to 0
-    #     for syn in nw.populations[0].connections[25].netcons:
-    #         print(syn.weight[0])
-    #         syn.weight[0] = 0.0
-    # elif network_type == "no-feedforward":
-    #     # Set PP to BC weight to 0
-    #     for pp_conns in nw.populations[2].connections[0:24]:
-    #         for syn in pp_conns.netcons:
-    #             print(syn.weight[0])
-    #             syn.weight[0] = 0.0
-    # elif network_type == "disinhibited":
-    #     # Set GC to MC weight to 0
-    #     for syn in nw.populations[0].connections[24].netcons:
-    #         print(syn.weight[0])
-    #         syn.weight[0] = 0.0
-    #     # Set GC to BC weight to 0
-    #     for syn in nw.populations[0].connections[25].netcons:
-    #         syn.weight[0] = 0.0
-    #     # Set PP to BC weight to 0
-    #     for pp_conns in nw.populations[2].connections[0:24]:
-    #         for syn in pp_conns.netcons:
-    #             syn.weight[0] = 0.0
-    # elif network_type != "tuned":
-    #     raise ValueError(
-    #         """network_type must be 'tuned',
-    #         'no-feedback', 'no-feedforward' or 'disinhibited'"""
-    #     )
