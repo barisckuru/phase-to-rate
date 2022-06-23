@@ -377,6 +377,9 @@ sns.boxplot(x='tuning', y='division', ax=ax1, zorder=1,
 sns.lineplot(x='tuning', y='division', ax=ax1, zorder=1,  legend=False,
             data=rate_all_3, linewidth=0.2, hue = 'grid_seed', color='black',
             palette= sns.color_palette(10*['black']), alpha=0.7)
+sns.scatterplot(x='tuning', y='division', ax=ax1, zorder=1,  legend=False,
+                data=rate_all_3, s=5, hue = 'grid_seed', color='black',
+                palette= sns.color_palette(10*['black']))
 
 sns.boxplot(x='tuning', y='division', ax=ax2, zorder=1,
             data=phase_all_3, linewidth=0.5, fliersize=1,
@@ -384,6 +387,9 @@ sns.boxplot(x='tuning', y='division', ax=ax2, zorder=1,
 sns.lineplot(x='tuning', y='division', ax=ax2, zorder=1, legend=False,
             data=phase_all_3, linewidth=0.2, hue='grid_seed',
             palette= sns.color_palette(10*['black']), alpha=0.7)
+sns.scatterplot(x='tuning', y='division', ax=ax2, zorder=1, legend=False,
+                data=phase_all_3, s=5, hue='grid_seed',
+                palette= sns.color_palette(10*['black']))
 sns.despine(ax=ax1)
 sns.despine(ax=ax2)
 ax1.set_xlabel('')
@@ -394,7 +400,7 @@ ax2.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
 ax1.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
-f3hi.subplots_adjust(bottom=0.3, top=0.95, left=0.2, right=0.95, wspace=0.5)
+f3hi.subplots_adjust(bottom=0.3, top=0.95, left=0.2, right=0.95, wspace=0.7)
 plt.rcParams["svg.fonttype"] = "none"
 f3hi.savefig(f'{save_dir}figure03_H&I.svg', dpi=200)
 f3hi.savefig(f'{save_dir}figure03_H&I.png', dpi=200)
@@ -422,105 +428,165 @@ for tuning in tunes:
                        ignore_index=True)
         phase_df= phase_df.append(df.groupby(['code_type']).get_group(('phase')),
                         ignore_index=True)
-# =============================================================================
-# 3J 
-# =============================================================================
+        
+rate_all_2 = rate_df.copy()
+rate_all_3 = rate_all_2.loc[(rate_all_2['shuffling']=='non-shuffled')]
+nonshuff_speed = rate_all_3['speed'].reset_index(drop=True)
+shuff_speed = rate_all_2.loc[(rate_all_2['shuffling']=='shuffled')]
+shuff_speed = shuff_speed['speed'].reset_index(drop=True)
+div = nonshuff_speed/shuff_speed
+rate_all_3.reset_index(drop=True, inplace=True)
+rate_all_3['division'] = div
+        
+phase_all_2 = phase_df.copy()
+phase_all_3 = phase_all_2.loc[(phase_all_2['shuffling']=='non-shuffled')]
+nonshuff_speed = phase_all_3['speed'].reset_index(drop=True)
+shuff_speed = phase_all_2.loc[(phase_all_2['shuffling']=='shuffled')]
+shuff_speed = shuff_speed['speed'].reset_index(drop=True)
+div = nonshuff_speed/shuff_speed
+phase_all_3.reset_index(drop=True, inplace=True)
+phase_all_3['division'] = div
+
+
 plt.close('all')
-grid_seeds = list(np.arange(11,21,1))
-f3j, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
+f3jk, (ax1, ax2) = plt.subplots(1,2, figsize=(7*cm, 3.5*cm), sharey=True)
+# f3i, ax2 = plt.subplots(figsize=(3.5*cm, 3.5*cm), sharex=True)
 
-sns.boxplot(x='tuning', y='speed', hue='shuffling', ax=ax, zorder=1,
-            data=rate_df, linewidth=0.5, fliersize=1,
-            palette=rate_pal, hue_order=['non-shuffled', 'shuffled'])
-loc = 0.4
-tunings = ['full', 'noff', 'nofb', 'disinh']
-for grid in grid_seeds:
-    tune_idx = 0
-    for tuning in tunings:
-        ns_data = rate_df.loc[(rate_df['shuffling']=='non-shuffled')
-                                      &
-                                      (rate_df['tuning']==tuning)
-                                      &
-                                      (rate_df['grid_seed']==grid)]
-        s_data = rate_df.loc[(rate_df['shuffling']=='shuffled')
-                                      &
-                                      (rate_df['tuning']==tuning)
-                                      &
-                                      (rate_df['grid_seed']==grid)]
-        if (np.array(ns_data['speed']).size > 0 and
-            np.array(s_data['speed']).size > 0):
-            ns_info = np.array(ns_data['speed'])[0]
-            s_info = np.array(s_data['speed'])[0]   
-            sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax, alpha=0.7,
-                         y = [ns_info, s_info], color='k', linewidth = 0.2)
-            sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax,
-                          y = [ns_info, s_info], color='k', s = 3, alpha=0.7)
-            print(tuning)
-        tune_idx+=1
-ax.ticklabel_format(style='sci', scilimits=[0, 0], axis='y')
-ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
+sns.boxplot(x='tuning', y='division', ax=ax1, zorder=1,
+            data=rate_all_3, linewidth=0.5, fliersize=1.2,
+            palette= sns.color_palette(4*['#267282']))
+sns.lineplot(x='tuning', y='division', ax=ax1, zorder=1,  legend=False,
+            data=rate_all_3, linewidth=0.2, hue = 'grid_seed', color='black',
+            palette= sns.color_palette(10*['black']), alpha=0.7)
+sns.scatterplot(x='tuning', y='division', ax=ax1, zorder=1,  legend=False,
+                data=rate_all_3, s=5, hue = 'grid_seed', color='black',
+                palette= sns.color_palette(10*['black']))
+
+
+sns.boxplot(x='tuning', y='division', ax=ax2, zorder=1,
+            data=phase_all_3, linewidth=0.5, fliersize=1.2,
+            palette= sns.color_palette(4*['#d63515']))
+sns.lineplot(x='tuning', y='division', ax=ax2, zorder=1, legend=False,
+            data=phase_all_3, linewidth=0.2, hue='grid_seed',
+            palette= sns.color_palette(10*['black']), alpha=0.7)
+sns.scatterplot(x='tuning', y='division', ax=ax2, zorder=1, legend=False,
+                data=phase_all_3, s=5, hue='grid_seed',
+                palette= sns.color_palette(10*['black']))
+sns.despine(ax=ax1)
+sns.despine(ax=ax2)
+ax1.set_xlabel('')
+ax1.set_ylabel('nonshuffled/shuffled')
+ax2.set_ylabel('')
+ax2.set_xlabel('')
+ax2.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[:2], labels[:2], bbox_to_anchor=(0, 1.4),
-          loc='upper left', borderaxespad=0., title=None,frameon=False)
-# ax.set_title('adjusted rate codes')
-ax.set_ylabel('Speed')
-f3j.subplots_adjust(left=0.25, bottom=0.3, right=0.9, top=0.8)
-sns.despine(fig=f3j)
-_adjust_box_widths(f3j, 0.7)
-plt.rcParams["svg.fonttype"] = "none"
-f3j.savefig(f'{save_dir}figure03_J.svg', dpi=200)
-f3j.savefig(f'{save_dir}figure03_J.png', dpi=200)
-
-# =============================================================================
-# 3K
-# =============================================================================
-plt.close('all')
-grid_seeds = list(np.arange(11,21,1))
-f3k, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
-
-sns.boxplot(x='tuning', y='speed', hue='shuffling', ax=ax, zorder=1,
-            data=phase_df, linewidth=0.5, fliersize=1,
-            palette=phase_pal, hue_order=['non-shuffled', 'shuffled'])
-loc = 0.4
-tunings = ['full', 'noff', 'nofb', 'disinh']
-for grid in grid_seeds:
-    tune_idx = 0
-    for tuning in tunings:
-        ns_data = phase_df.loc[(phase_df['shuffling']=='non-shuffled')
-                                      &
-                                      (phase_df['tuning']==tuning)
-                                      &
-                                      (phase_df['grid_seed']==grid)]
-        s_data = phase_df.loc[(phase_df['shuffling']=='shuffled')
-                                      &
-                                      (phase_df['tuning']==tuning)
-                                      &
-                                      (phase_df['grid_seed']==grid)]
-        if (np.array(ns_data['speed']).size > 0 and
-            np.array(s_data['speed']).size > 0):
-            ns_info = np.array(ns_data['speed'])[0]
-            s_info = np.array(s_data['speed'])[0]   
-            sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax, alpha=0.7,
-                         y = [ns_info, s_info], color='k', linewidth = 0.2)
-            sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax,
-                          y = [ns_info, s_info], color='k', s = 3, alpha=0.7)
-            print(tuning)
-        tune_idx+=1
-ax.ticklabel_format(style='sci', scilimits=[0, 0], axis='y')
-ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
+ax1.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[:2], labels[:2], bbox_to_anchor=(0, 1.4),
-          loc='upper left', borderaxespad=0., title=None, frameon=False)
-# ax.set_title('adjusted phase codes')
-ax.set_ylabel('Speed')
-f3k.subplots_adjust(left=0.25,  bottom=0.3, right=0.9, top=0.8)
-sns.despine(fig=f3k)
-_adjust_box_widths(f3k, 0.7)
+f3jk.subplots_adjust(bottom=0.3, top=0.95, left=0.2, right=0.95, wspace=0.7)
 plt.rcParams["svg.fonttype"] = "none"
-f3k.savefig(f'{save_dir}figure03_K.svg', dpi=200)
-f3k.savefig(f'{save_dir}figure03_K.png', dpi=200)
+f3jk.savefig(f'{save_dir}figure03_J&K.svg', dpi=200)
+f3jk.savefig(f'{save_dir}figure03_J&K.png', dpi=200)
+
+
+# # =============================================================================
+# # 3J 
+# # =============================================================================
+# plt.close('all')
+# grid_seeds = list(np.arange(11,21,1))
+# f3j, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
+
+# sns.boxplot(x='tuning', y='speed', hue='shuffling', ax=ax, zorder=1,
+#             data=rate_df, linewidth=0.5, fliersize=1,
+#             palette=rate_pal, hue_order=['non-shuffled', 'shuffled'])
+# loc = 0.4
+# tunings = ['full', 'noff', 'nofb', 'disinh']
+# for grid in grid_seeds:
+#     tune_idx = 0
+#     for tuning in tunings:
+#         ns_data = rate_df.loc[(rate_df['shuffling']=='non-shuffled')
+#                                       &
+#                                       (rate_df['tuning']==tuning)
+#                                       &
+#                                       (rate_df['grid_seed']==grid)]
+#         s_data = rate_df.loc[(rate_df['shuffling']=='shuffled')
+#                                       &
+#                                       (rate_df['tuning']==tuning)
+#                                       &
+#                                       (rate_df['grid_seed']==grid)]
+#         if (np.array(ns_data['speed']).size > 0 and
+#             np.array(s_data['speed']).size > 0):
+#             ns_info = np.array(ns_data['speed'])[0]
+#             s_info = np.array(s_data['speed'])[0]   
+#             sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax, alpha=0.7,
+#                          y = [ns_info, s_info], color='k', linewidth = 0.2)
+#             sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax,
+#                           y = [ns_info, s_info], color='k', s = 3, alpha=0.7)
+#             print(tuning)
+#         tune_idx+=1
+# ax.ticklabel_format(style='sci', scilimits=[0, 0], axis='y')
+# ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
+#                     , rotation=60)
+# handles, labels = ax.get_legend_handles_labels()
+# ax.legend(handles[:2], labels[:2], bbox_to_anchor=(0, 1.4),
+#           loc='upper left', borderaxespad=0., title=None,frameon=False)
+# # ax.set_title('adjusted rate codes')
+# ax.set_ylabel('Speed')
+# f3j.subplots_adjust(left=0.25, bottom=0.3, right=0.9, top=0.8)
+# sns.despine(fig=f3j)
+# _adjust_box_widths(f3j, 0.7)
+# plt.rcParams["svg.fonttype"] = "none"
+# f3j.savefig(f'{save_dir}figure03_J.svg', dpi=200)
+# f3j.savefig(f'{save_dir}figure03_J.png', dpi=200)
+
+# # =============================================================================
+# # 3K
+# # =============================================================================
+# plt.close('all')
+# grid_seeds = list(np.arange(11,21,1))
+# f3k, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
+
+# sns.boxplot(x='tuning', y='speed', hue='shuffling', ax=ax, zorder=1,
+#             data=phase_df, linewidth=0.5, fliersize=1,
+#             palette=phase_pal, hue_order=['non-shuffled', 'shuffled'])
+# loc = 0.4
+# tunings = ['full', 'noff', 'nofb', 'disinh']
+# for grid in grid_seeds:
+#     tune_idx = 0
+#     for tuning in tunings:
+#         ns_data = phase_df.loc[(phase_df['shuffling']=='non-shuffled')
+#                                       &
+#                                       (phase_df['tuning']==tuning)
+#                                       &
+#                                       (phase_df['grid_seed']==grid)]
+#         s_data = phase_df.loc[(phase_df['shuffling']=='shuffled')
+#                                       &
+#                                       (phase_df['tuning']==tuning)
+#                                       &
+#                                       (phase_df['grid_seed']==grid)]
+#         if (np.array(ns_data['speed']).size > 0 and
+#             np.array(s_data['speed']).size > 0):
+#             ns_info = np.array(ns_data['speed'])[0]
+#             s_info = np.array(s_data['speed'])[0]   
+#             sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax, alpha=0.7,
+#                          y = [ns_info, s_info], color='k', linewidth = 0.2)
+#             sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax,
+#                           y = [ns_info, s_info], color='k', s = 3, alpha=0.7)
+#             print(tuning)
+#         tune_idx+=1
+# ax.ticklabel_format(style='sci', scilimits=[0, 0], axis='y')
+# ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
+#                     , rotation=60)
+# handles, labels = ax.get_legend_handles_labels()
+# ax.legend(handles[:2], labels[:2], bbox_to_anchor=(0, 1.4),
+#           loc='upper left', borderaxespad=0., title=None, frameon=False)
+# # ax.set_title('adjusted phase codes')
+# ax.set_ylabel('Speed')
+# f3k.subplots_adjust(left=0.25,  bottom=0.3, right=0.9, top=0.8)
+# sns.despine(fig=f3k)
+# _adjust_box_widths(f3k, 0.7)
+# plt.rcParams["svg.fonttype"] = "none"
+# f3k.savefig(f'{save_dir}figure03_K.svg', dpi=200)
+# f3k.savefig(f'{save_dir}figure03_K.png', dpi=200)
        
         
        
