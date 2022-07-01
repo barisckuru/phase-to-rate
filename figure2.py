@@ -488,6 +488,8 @@ plt.rcParams["svg.fonttype"] = "none"
 f2f.savefig(f'{save_dir}figure02_F.svg', dpi=200)
 f2f.savefig(f'{save_dir}figure02_F.png', dpi=200)
 
+
+
 # =============================================================================
 # Figure 2G
 # =============================================================================
@@ -713,6 +715,11 @@ dfa3.rename(columns={'info (bits/AP)':'scaled value (non-shuffled/shuffled)'},
             inplace=True)
 dfa3['shuffling'] = 'nonshuffled/shuffled'
 
+# output_name = '/home/baris/results/excel/figure2I_adjusted_scaled_skaggs-info.xlsx'
+
+# with pd.ExcelWriter(output_name) as writer:
+#     dfa3.to_excel(writer, sheet_name='scaled_info')
+    
 plt.close('all')
 f2j, ax = plt.subplots(1,1, figsize=(5*cm, 4*cm))
 sns.boxplot(x='tuning', y='scaled value (non-shuffled/shuffled)', ax=ax,

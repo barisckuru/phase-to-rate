@@ -423,12 +423,20 @@ for tuning in tunes:
     with open(fname, 'rb') as f:
         loaded = pickle.load(f)
         df = loaded.loc[loaded['grid_seed']<21]
-        df['tuning'] = 40*[tuning]
+        df = df[df['grid_seed']!=14]
+        df['tuning'] = 36*[tuning]
         rate_df = rate_df.append(df.groupby(['code_type']).get_group(('rate')),
                        ignore_index=True)
         phase_df= phase_df.append(df.groupby(['code_type']).get_group(('phase')),
                         ignore_index=True)
-        
+
+output_name = '/home/baris/results/excel/figure3J&K_adjusted_data-perceptron.xlsx'
+
+with pd.ExcelWriter(output_name) as writer:
+    rate_df.to_excel(writer, sheet_name='rate code')
+    phase_df.to_excel(writer, sheet_name='phase code')
+    
+    
 rate_all_2 = rate_df.copy()
 rate_all_3 = rate_all_2.loc[(rate_all_2['shuffling']=='non-shuffled')]
 nonshuff_speed = rate_all_3['speed'].reset_index(drop=True)
@@ -457,10 +465,10 @@ sns.boxplot(x='tuning', y='division', ax=ax1, zorder=1,
             palette= sns.color_palette(4*['#267282']))
 sns.lineplot(x='tuning', y='division', ax=ax1, zorder=1,  legend=False,
             data=rate_all_3, linewidth=0.2, hue = 'grid_seed', color='black',
-            palette= sns.color_palette(10*['black']), alpha=0.7)
+            palette= sns.color_palette(9*['black']), alpha=0.7)
 sns.scatterplot(x='tuning', y='division', ax=ax1, zorder=1,  legend=False,
                 data=rate_all_3, s=5, hue = 'grid_seed', color='black',
-                palette= sns.color_palette(10*['black']))
+                palette= sns.color_palette(9*['black']))
 
 
 sns.boxplot(x='tuning', y='division', ax=ax2, zorder=1,
@@ -468,10 +476,10 @@ sns.boxplot(x='tuning', y='division', ax=ax2, zorder=1,
             palette= sns.color_palette(4*['#d63515']))
 sns.lineplot(x='tuning', y='division', ax=ax2, zorder=1, legend=False,
             data=phase_all_3, linewidth=0.2, hue='grid_seed',
-            palette= sns.color_palette(10*['black']), alpha=0.7)
+            palette= sns.color_palette(9*['black']), alpha=0.7)
 sns.scatterplot(x='tuning', y='division', ax=ax2, zorder=1, legend=False,
                 data=phase_all_3, s=5, hue='grid_seed',
-                palette= sns.color_palette(10*['black']))
+                palette= sns.color_palette(9*['black']))
 sns.despine(ax=ax1)
 sns.despine(ax=ax2)
 ax1.set_xlabel('')
