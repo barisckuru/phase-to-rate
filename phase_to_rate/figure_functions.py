@@ -115,3 +115,124 @@ def _adjust_bar_widths(ax, new_value):
         patch.set_width(new_value)
         # recenter the bar
         patch.set_x(patch.get_x() + diff * .5)
+                
+        
+# figure 5 data
+
+def f5_load_data (fname, path):
+    with open(results_dir + fname, 'rb') as f:
+        condition_dict = pickle.load(f)
+    
+    gseeds = 30
+    simulation_time = 2    # simulation time in s
+    nan = np.nan
+    
+    ''' Analysis across grid seeds '''
+           
+    full_w_mean = np.zeros(gseeds)
+    noFB_w_mean = np.zeros(gseeds)
+    full_s_mean = np.zeros(gseeds)
+    noFB_s_mean = np.zeros(gseeds)
+    full_gc_s_mean = np.zeros(gseeds)
+    noFB_gc_s_mean = np.zeros(gseeds)
+    full_i_s_mean = np.zeros(gseeds)
+    noFB_i_s_mean = np.zeros(gseeds)
+    
+    full_w_corr = np.zeros(gseeds)
+    noFB_w_corr = np.zeros(gseeds)
+    full_s_corr = np.zeros(gseeds)
+    noFB_s_corr = np.zeros(gseeds)
+    
+    full_inter_corr = np.zeros(gseeds)
+    noFB_inter_corr = np.zeros(gseeds)
+    
+    for gseed in range(1,gseeds+1):
+        #print(gseed)
+        i = gseed-1  
+        noFB_w_mean[i] = np.mean(condition_dict['noFB'][gseed]['weights'])
+        noFB_s_mean[i] = np.mean(condition_dict['noFB'][gseed]['CA3_spikes'])/simulation_time
+        noFB_gc_s_mean[i] = np.mean(condition_dict['noFB'][gseed]['GC_spikes'])/simulation_time
+        noFB_i_s_mean[i] = np.mean(condition_dict['noFB'][gseed]['I_spikes'])/simulation_time
+        
+        weights = pd.DataFrame(condition_dict['noFB'][gseed]['weights'])
+        weights = weights.transpose()
+        wncorr_matrix = weights.corr()
+        wncorr_matrix[wncorr_matrix==1]=np.NaN
+        noFB_w_corr[i] = np.nanmean(wncorr_matrix)
+        
+        spikes = pd.DataFrame(condition_dict['noFB'][gseed]['CA3_spikes'])
+        spikes = spikes.transpose()
+        sncorr_matrix = spikes.corr()
+        sncorr_matrix[sncorr_matrix==1]=np.NaN
+        noFB_s_corr[i] = np.nanmean(sncorr_matrix)
+        
+        wncorr_matrix.fillna(np.nanmean(wncorr_matrix), inplace=True)
+        sncorr_matrix.fillna(np.nanmean(sncorr_matrix), inplace=True) 
+        wncorr_matrix = wncorr_matrix.stack()
+        sncorr_matrix = sncorr_matrix.stack()
+        noFB_inter_corr[i] = wncorr_matrix.corr(sncorr_matrix)
+        
+        meanGCrate = np.mean(condition_dict['noFB'][gseed]['GC_spikes'])/simulation_time
+        #print(gseed)
+        full_w_mean[i] = np.mean(condition_dict['full'][gseed]['weights'])    
+        full_s_mean[i] = np.mean(condition_dict['full'][gseed]['CA3_spikes'])/simulation_time  
+        full_i_s_mean[i] = np.mean(condition_dict['full'][gseed]['I_spikes'])/simulation_time
+        full_gc_s_mean[i] = np.mean(condition_dict['full'][gseed]['GC_spikes'])/simulation_time
+        
+        weights = pd.DataFrame(condition_dict['full'][gseed]['weights'])
+        weights = weights.transpose()
+        wfcorr_matrix = weights.corr()
+        wfcorr_matrix[wfcorr_matrix==1]=np.NaN
+        full_w_corr[i] = np.nanmean(wfcorr_matrix)
+        
+        spikes = pd.DataFrame(condition_dict['full'][gseed]['CA3_spikes'])
+        spikes = spikes.transpose()
+        sfcorr_matrix = spikes.corr()
+        sfcorr_matrix[sfcorr_matrix==1]=np.NaN
+        full_s_corr[i] = np.nanmean(sfcorr_matrix)
+        
+        wfcorr_matrix.fillna(np.nanmean(wfcorr_matrix), inplace=True)    
+        sfcorr_matrix.fillna(np.nanmean(sfcorr_matrix), inplace=True)
+        wfcorr_matrix = wfcorr_matrix.stack()
+        sfcorr_matrix = sfcorr_matrix.stack()
+        full_inter_corr[i] = wfcorr_matrix.corr(sfcorr_matrix)
+        
+    'filtering the mean rates between 0.2 - 0.3'
+    for gseed in range(1,gseeds+1):
+        i = gseed-1
+        meanGCrate = np.mean(condition_dict['full'][gseed]['GC_spikes'])/simulation_time
+        if meanGCrate < 0.2 or meanGCrate > 0.3:
+            full_w_mean[i] = nan
+            full_s_mean[i] = nan
+            full_i_s_mean[i] = nan
+            full_gc_s_mean[i] = nan
+            full_w_corr[i] = nan
+            full_s_corr[i] = nan
+            full_inter_corr[i] = nan
+        meanGCrate = np.mean(condition_dict['noFB'][gseed]['GC_spikes'])/simulation_time
+        if meanGCrate < 0.2 or meanGCrate > 0.3:
+            noFB_w_mean[i] = nan
+            print('nan Ahoi')
+            noFB_s_mean[i] = nan
+            noFB_gc_s_mean[i] = nan
+            noFB_w_corr[i] = nan
+            noFB_s_corr[i] = nan
+            noFB_inter_corr[i] = nan  
+        
+    # mean weights dataframe
+    weight_means = np.concatenate((full_w_mean, noFB_w_mean))
+    grid_seeds = 2*list(range(1,31,1))
+    tuning = 30*['full'] + 30*['noFB']
+    weights_df = pd.DataFrame([grid_seeds, weight_means, tuning]).transpose()
+    weights_df.columns=['grid seed', 'mean weight', 'tuning']
+    
+    # mean rates dataframe
+    grid_seeds = np.array(6*list(range(1,31,1)))
+    cell = 2*(30*['granule'] + 30*['ca3'] + 30*['interneuron'])
+    tuning = 90*['full'] + 90*['noFB']
+    mean_rates = np.concatenate((full_gc_s_mean, full_s_mean, full_i_s_mean,
+                                 noFB_gc_s_mean, noFB_s_mean, noFB_i_s_mean))
+    rates_df = pd.DataFrame([grid_seeds, mean_rates, cell, tuning]).transpose()
+    rates_df.columns=['grid seed', 'mean rate', 'cell', 'tuning']
+
+    return rates_df, weights_df
