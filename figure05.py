@@ -44,7 +44,7 @@ cm=1/2.54
 
 
 # =============================================================================
-# load data for B, C and J
+# load data for B, C and J     ## this should be B,C, F, 
 # =============================================================================
 fname = 'figure05_B-C-J_condition_dict.pkl'
 rates_df, weights_df = f5_load_data(fname, results_dir)
@@ -169,7 +169,7 @@ f5c2.savefig(f'{save_dir}figure05_C_intn_bar.svg', dpi=200)
 f5c2.savefig(f'{save_dir}figure05_C_intn_bar.png', dpi=200)
 
 # =============================================================================
-# Figure 5J
+# Figure 5J    ### I think this is F, right? that is symmetric STDP
 # =============================================================================
 
 ca3_pal = {'full': '#09422d', 'noFB': '#66a253'}
@@ -206,10 +206,50 @@ plt.rcParams["svg.fonttype"] = "none"
 f5j.savefig(f'{save_dir}figure05_J_bar.svg', dpi=200)
 f5j.savefig(f'{save_dir}figure05_J_bar.png', dpi=200)
 
+# =============================================================================
+# Figure 5H        ### here weights_df still conteins the 'symmetric STDP' data
+# =============================================================================
+
+ca3_pal = {'full': '#09422d', 'noFB': '#66a253'}
+f5l, ax1 = plt.subplots(1, 1, figsize=(2.5*cm, 4*cm))
+
+df = weights_df['weights/rates'] = weights_df['mean weight']/ca3_rates_df['mean rate']
+
+sns.boxplot(x='tuning', y='weights/rates', ax=ax1, zorder=1,
+            data=df,
+            palette=ca3_pal, linewidth=0.5, fliersize=1)
+loc = 1
+tune_idx = 0.5
+for grid in grid_seeds:
+    full_data = weights_df.loc[(weights_df['tuning'] == 'full')
+                                     &
+                                     (weights_df['grid seed'] == grid)]
+    noFB_data = weights_df.loc[(weights_df['tuning'] == 'noFB')
+                                                                          &
+                                     (weights_df['grid seed'] == grid)]
+
+    full_data = np.array(full_data['mean weight'])[0]
+    noFB_data = np.array(noFB_data['mean weight'])[0]
+    sns.lineplot(x=[-loc/2+tune_idx, loc/2+tune_idx], ax=ax1,
+                 y=[full_data, noFB_data], color='k', linewidth=0.05)
+    sns.scatterplot(x=[-loc/2+tune_idx, loc/2+tune_idx], ax=ax1,
+                    y=[full_data, noFB_data], color='k', s=3)
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=60)
+handles, labels = ax1.get_legend_handles_labels()
+
+ax1.legend(handles[:2], labels[:2], bbox_to_anchor=(-1, 1.5),
+           loc='upper left', borderaxespad=0., title=None)
+ax1.set_ylabel('Mean weight (Hz)')
+f5l.subplots_adjust(bottom=0.3, left=0.5, top=0.9)
+sns.despine(fig=f5l)
+_adjust_box_widths(f5l, 0.7)
+plt.rcParams["svg.fonttype"] = "none"
+f5l.savefig(f'{save_dir}figure05_L_bar.svg', dpi=200)
+f5l.savefig(f'{save_dir}figure05_L_bar.png', dpi=200)
 
 
 # =============================================================================
-# Figure 5F
+# Figure 5F   ### and this should be J, i.e. assymetric STDP, right?
 # =============================================================================
 
 fname = 'figure05_F_condition_dict.pkl'
@@ -248,3 +288,44 @@ _adjust_box_widths(f5f, 0.7)
 plt.rcParams["svg.fonttype"] = "none"
 f5f.savefig(f'{save_dir}figure05_F_bar.svg', dpi=200)
 f5f.savefig(f'{save_dir}figure05_F_bar.png', dpi=200)
+
+
+# =============================================================================
+# Figure 5L     ## here weights_df should still contain the 'assymmetric STDP' data
+# =============================================================================
+
+df = weights_df['weights/rates'] = weights_df['mean weight']/ca3_rates_df['mean rate']
+
+ca3_pal = {'full': '#09422d', 'noFB': '#66a253'}
+f5h, ax1 = plt.subplots(1, 1, figsize=(2.5*cm, 4*cm))
+sns.boxplot(x='tuning', y='mean weight', ax=ax1, zorder=1,
+            data=weights_df,
+            palette=ca3_pal, linewidth=0.5, fliersize=1)
+loc = 1
+tune_idx = 0.5
+for grid in grid_seeds:
+    full_data = weights_df.loc[(weights_df['tuning'] == 'full')
+                                     &
+                                     (weights_df['grid seed'] == grid)]
+    noFB_data = weights_df.loc[(weights_df['tuning'] == 'noFB')
+                                                                          &
+                                     (weights_df['grid seed'] == grid)]
+
+    full_data = np.array(full_data['mean weight'])[0]
+    noFB_data = np.array(noFB_data['mean weight'])[0]
+    sns.lineplot(x=[-loc/2+tune_idx, loc/2+tune_idx], ax=ax1,
+                 y=[full_data, noFB_data], color='k', linewidth=0.05)
+    sns.scatterplot(x=[-loc/2+tune_idx, loc/2+tune_idx], ax=ax1,
+                    y=[full_data, noFB_data], color='k', s=3)
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=60)
+handles, labels = ax1.get_legend_handles_labels()
+
+ax1.legend(handles[:2], labels[:2], bbox_to_anchor=(-1, 1.5),
+           loc='upper left', borderaxespad=0., title=None)
+ax1.set_ylabel('Mean weight (Hz)')
+f5h.subplots_adjust(bottom=0.3, left=0.5, top=0.9)
+sns.despine(fig=f5h)
+_adjust_box_widths(f5h, 0.7)
+plt.rcParams["svg.fonttype"] = "none"
+f5h.savefig(f'{save_dir}figure05_H_bar.svg', dpi=200)
+f5h.savefig(f'{save_dir}figure05_H_bar.png', dpi=200)
