@@ -169,7 +169,7 @@ f5c2.savefig(f'{save_dir}figure05_C_intn_bar.svg', dpi=200)
 f5c2.savefig(f'{save_dir}figure05_C_intn_bar.png', dpi=200)
 
 # =============================================================================
-# Figure 5J    ### I think this is F, right? that is symmetric STDP
+# Figure 5F
 # =============================================================================
 
 ca3_pal = {'full': '#09422d', 'noFB': '#66a253'}
@@ -249,7 +249,7 @@ f5l.savefig(f'{save_dir}figure05_L_bar.png', dpi=200)
 
 
 # =============================================================================
-# Figure 5F   ### and this should be J, i.e. assymetric STDP, right?
+# Figure 5J
 # =============================================================================
 
 fname = 'figure05_F_condition_dict.pkl'
