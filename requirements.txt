@@ -3,4 +3,5 @@ scipy
 numpy
 pandas
 matplotlib
+elephant
 pydentate @ git+https://github.com/danielmk/pydentate.git@master
