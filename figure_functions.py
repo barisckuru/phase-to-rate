@@ -118,9 +118,8 @@ def _adjust_bar_widths(ax, new_value):
                 
         
 # figure 5 data
-
 def f5_load_data (fname, path):
-    with open(results_dir + fname, 'rb') as f:
+    with open(path + fname, 'rb') as f:
         condition_dict = pickle.load(f)
     
     gseeds = 30

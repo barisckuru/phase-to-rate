@@ -25,8 +25,8 @@ import copy
 
 
 
-results_dir = '/home/baris/results/pickled/'
-save_dir = '/home/baris/Dropbox/10_dynamic_pattern_separation/figures/figure05/'
+results_dir = r'C:\Users\Daniel\repos\phase-to-rate\results\pickled'
+save_dir = r'C:\Users\Daniel\repos\phase-to-rate'
 
 # plotting settings
 sns.set(style='ticks', palette='deep', font='Arial', color_codes=True)
