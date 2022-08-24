@@ -6,7 +6,7 @@ Created on Wed Feb 23 13:27:14 2022
 @author: baris
 """
 
-import grid_model
+from phase_to_rate import grid_model
 from neo.core import AnalogSignal
 import quantities as pq
 from elephant import spike_train_generation as stg

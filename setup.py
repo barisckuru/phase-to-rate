@@ -15,7 +15,7 @@ with open(path.join(here, 'requirements.txt')) as f:
 setup(
     name='phase_to_rate',
     version='0.0.1',
-    description='Repository to reproduce our project about phase to rate recording in the EC-DG system.',
+    description='Repository to reproduce our findings about phase to rate recording in the EC-DG system.',
     long_description=readme,
     author='Daniel Müller-Komorowska',
     author_email='danielmuellermsc@gmail.com',

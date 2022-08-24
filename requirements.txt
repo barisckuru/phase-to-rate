@@ -1,7 +1,14 @@
-datajoint>=0.13
 scipy
 numpy
 pandas
 matplotlib
 elephant
+neo
+seaborn
+torch
+brian2
+openpyxl
+statsmodels
+scikit-posthocs
+git+https://github.com/danielmk/tempotron.git
 pydentate @ git+https://github.com/danielmk/pydentate.git@master

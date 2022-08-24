@@ -23,7 +23,6 @@ if not os.path.isdir(results_dir):
 
 neuron_tools.load_compiled_mechanisms()
 
-
 """Seeding and trajectories"""
 grid_seeds = np.arange(1, 31, 1)
 

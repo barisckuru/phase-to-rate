@@ -9,8 +9,9 @@ import pickle
 import numpy as np
 import seaborn as sns
 import pandas as pd
-import grid_model
-from figure_functions import _make_cmap, _precession_spikes, _adjust_box_widths
+from phase_to_rate import grid_model
+from phase_to_rate.figure_functions import (_make_cmap, _precession_spikes,
+                              _adjust_box_widths)
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -19,11 +20,13 @@ import matplotlib.font_manager
 from scipy.stats import pearsonr,  spearmanr
 from scipy import stats
 import copy
+import os
 
 
 # file directory
-results_dir = '/home/baris/results/'
-save_dir = '/home/baris/paper/figures/figure02/'
+dirname = os.path.dirname(__file__)
+results_dir = os.path.join(dirname, 'data')
+save_dir = dirname
 
 # plotting settings
 sns.set(style='ticks', palette='deep', font='Arial', color_codes=True)
@@ -36,8 +39,6 @@ plt.rc('legend', fontsize=10) #fontsize of the legend
 cm=1/2.54
 
 
-
-
 # =============================================================================
 # Figure 2 A
 # =============================================================================
@@ -46,7 +47,7 @@ my_pal = {'grid': '#716969', 'granule': '#09316c'}
 
 tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
 for i, tuning in enumerate(tunings):
-    fname = f'{results_dir}pickled/fig2_phase-dist_{tuning}.pkl'
+    fname = os.path.join(results_dir, 'pickled', f'fig2_phase-dist_{tuning}.pkl')
     with open(fname, 'rb') as f:
         phase_df = pickle.load(f)
     phase_df = phase_df[phase_df['shuffling']=='non-shuffled']
@@ -75,7 +76,7 @@ my_pal = {'grid': '#a09573', 'granule': '#127475'}
 
 tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
 for i, tuning in enumerate(tunings):
-    fname = f'{results_dir}pickled/fig2_phase-dist_{tuning}.pkl'
+    fname = os.path.join(results_dir, 'pickled', f'fig2_phase-dist_{tuning}.pkl')
     with open(fname, 'rb') as f:
         phase_df = pickle.load(f)
     phase_df = phase_df[phase_df['shuffling']=='shuffled']
@@ -101,7 +102,7 @@ grid_pal = {'non-shuffled': '#716969', 'shuffled': '#a09573'}
 granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 legend_size = 8
 
-fname = results_dir + 'excel/mean_firing_rates.xlsx'
+fname = os.path.join(results_dir, 'excel', 'mean_firing_rates.xlsx')
 all_mean_rates = pd.read_excel(fname, index_col=0)
 grid_seeds = list(np.arange(1, 11, 1))
 grid_mean = all_mean_rates[all_mean_rates['cell'] == 'grid']
@@ -299,7 +300,7 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 n_samples = 20
 grid_seeds = np.arange(1, 11, 1)
 tuning = 'full'
-fname = results_dir + 'pickled/neural_codes_full.pkl'
+fname = os.path.join(results_dir, 'pickled', 'neural_codes_full.pkl')
 with open(fname, 'rb') as f:
     all_codes = pickle.load(f)
 
@@ -495,7 +496,7 @@ f2f.savefig(f'{save_dir}figure02_F.png', dpi=200)
 # =============================================================================
 granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 
-fname = results_dir + 'excel/mean_deltaR_2000ms_75vsall.xlsx'
+fname = os.path.join(results_dir, 'excel', 'mean_deltaR_2000ms_75vsall.xlsx')
 all_mean_deltaR = pd.read_excel(fname, index_col=0)
 f2g, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
 
@@ -554,7 +555,7 @@ grid_pal = {'non-shuffled': '#716969', 'shuffled': '#a09573'}
 granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 legend_size = 8
 
-fname = results_dir + 'excel/figure_2I_skaggs_non-adjusted.xlsx'
+fname = os.path.join(results_dir, 'excel', 'figure_2I_skaggs_non-adjusted.xlsx')
 df_skaggs = pd.read_excel(fname, index_col=0)
 grid_seeds = list(np.arange(1,11,1))
 grid_info = df_skaggs[df_skaggs['cell']=='full grid']
@@ -646,6 +647,7 @@ granule_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 legend_size = 8
 
 fname = results_dir + 'excel/fig2j_adjusted-filtered-info.xlsx'
+fname = os.path.join(results_dir, 'excel', 'fig2j_adjusted-filtered-info.xlsx')
 dfa = pd.read_excel(fname, index_col=0)
 realistic_means = copy.deepcopy(dfa)
 f2i, ax = plt.subplots(1,1, figsize=(5*cm, 5*cm))
@@ -704,6 +706,7 @@ f2i.savefig(f'{save_dir}figure02_I.png', dpi=200)
 scaled_pal = {'nonshuffled/shuffled': '#267282'}
 
 fname = results_dir + 'excel/fig2j_adjusted-filtered-info.xlsx'
+fname = os.path.join(results_dir, 'excel', 'fig2j_adjusted-filtered-info.xlsx')
 dfa = pd.read_excel(fname, index_col=0)
 dfa2 = copy.deepcopy(dfa)
 dfa2_ns = dfa2[dfa2['shuffling']=='non-shuffled'].reset_index(drop=True)
@@ -759,6 +762,7 @@ f2j.savefig(f'{save_dir}figure02_J.png', dpi=200)
 # Figure 1C barplot
 # =============================================================================
 fname = results_dir + 'excel/mean_firing_rates.xlsx'
+fname = os.path.join(results_dir, 'excel', 'mean_firing_rates.xlsx')
 all_mean_rates = pd.read_excel(fname, index_col=0)
 
 grid_mean = all_mean_rates[all_mean_rates['cell']=='grid']

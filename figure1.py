@@ -7,9 +7,9 @@ Figure 1 demonstrates the grid cell model with phase precession.
 import numpy as np
 import seaborn as sns
 import pandas as pd
-import grid_model
-from neural_coding import load_spikes
-from figure_functions import (_make_cmap, _precession_spikes,
+from phase_to_rate import grid_model
+from phase_to_rate.neural_coding import load_spikes
+from phase_to_rate.figure_functions import (_make_cmap, _precession_spikes,
                               _adjust_box_widths, _adjust_bar_widths)
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -81,8 +81,8 @@ cbar.set_label('Hz', labelpad=15, rotation=270)
 plt.subplots_adjust(left=0.10, bottom=0.025,
                     right=0.84, top=0.99, wspace=0.15, hspace=0.15)
 plt.rcParams['svg.fonttype'] = 'none'
-f1c.savefig(f'{save_dir}figure01_C.svg', dpi=200)
-f1c.savefig(f'{save_dir}figure01_C.png', dpi=200)
+f1c.savefig(os.path.join(save_dir, 'figure01_C.svg'), dpi=200)
+f1c.savefig(os.path.join(save_dir, 'figure01_C.png'), dpi=200)
 
 # =============================================================================
 # Figure 1D
@@ -166,8 +166,8 @@ for xc in xpos:
 
 f1d.subplots_adjust(bottom=0.15, hspace=0.3, top=0.98, left=0.3, right=0.9)
 plt.rcParams["svg.fonttype"] = "none"
-f1d.savefig(save_dir+'figure01_D.svg', dpi=200)
-f1d.savefig(save_dir+'figure01_D.png', dpi=200)
+f1d.savefig(os.path.join(save_dir, 'figure01_D.svg'), dpi=200)
+f1d.savefig(os.path.join(save_dir, 'figure01_D.png'), dpi=200)
 
 
 # =============================================================================
@@ -235,8 +235,8 @@ for pos_peak, orientation in zip(pos_peak, orientation):
                   f'{spacing}_{pos_peak[0]}_{orientation}')
 
     plt.rcParams["svg.fonttype"] = "none"
-    f1e.savefig(f'{save_dir}figure01_E_{parameters}.svg', dpi=200)
-    f1e.savefig(f'{save_dir}figure01_E_{parameters}.png', dpi=200)
+    f1e.savefig(os.path.join(save_dir, f'figure01_E_{parameters}.svg'), dpi=200)
+    f1e.savefig(os.path.join(save_dir, f'figure01_E_{parameters}.png'), dpi=200)
 
 
 # =============================================================================
@@ -253,14 +253,17 @@ tuning = 'full'
 grid_spikes = []
 granule_spikes = []
 for grid_seed in grid_seeds:
-    path = ("/home/baris/results/" + str(tuning) +
-            "/collective/grid-seed_duration_shuffling_tuning_")
+    path = os.path.join(results_dir,
+                        'main',
+                        tuning,
+                        'collective',
+                        f'grid-seed_duration_shuffling_tuning_{grid_seed}_2000_non-shuffled_{tuning}')
     # non-shuffled
-    ns_path = (path + str(grid_seed) + "_2000_non-shuffled_"+str(tuning))
-    grid_spikes.append(load_spikes(ns_path,
+    grid_spikes.append(load_spikes(path,
                                    "grid", trajectories, n_samples)[75])
-    granule_spikes.append(load_spikes(ns_path, "granule",
+    granule_spikes.append(load_spikes(path, "granule",
                                       trajectories, n_samples)[75])
+
 
 grid_counts_byseed = []
 gra_counts_byseed = []
@@ -300,8 +303,10 @@ sns.barplot(x='population', y='active cells %', ax=ax1, zorder=1, errwidth=0.6,
 sns.scatterplot(x='population', y='active cells %', ax=ax1, zorder=10,
                 data=act_cell_df, color='black', s=3)
 
-all_mean_rates = pd.read_excel(results_dir + 
-                               'excel/mean_firing_rates.xlsx', index_col=0)
+all_mean_rates_path = os.path.join(results_dir,
+                                   'excel',
+                                   'mean_firing_rates.xlsx')
+all_mean_rates = pd.read_excel(all_mean_rates_path, index_col=0)
 mean_rates = all_mean_rates[(all_mean_rates['shuffling']=='non-shuffled') &
                             (all_mean_rates['tuning']=='full')]
 
@@ -317,8 +322,8 @@ f1g.subplots_adjust(bottom=0.25, hspace=0.4, top=0.98, left=0.4, right=0.9)
 _adjust_bar_widths(ax1, 0.4)
 _adjust_bar_widths(ax2, 0.4)
 plt.rcParams["svg.fonttype"] = "none"
-f1g.savefig(f'{save_dir}figure01_G.svg', dpi=200)
-f1g.savefig(f'{save_dir}figure01_G.png', dpi=200)
+f1g.savefig(os.path.join(save_dir, 'figure01_G.svg'), dpi=200)
+f1g.savefig(os.path.join(save_dir, 'figure01_G.png'), dpi=200)
 
 
 # =============================================================================
@@ -352,8 +357,8 @@ ax2.set_yticks(range(0,n_granule+1, 5))
 plt.tight_layout()
 
 plt.rcParams['svg.fonttype' ]= 'none'
-f1f.savefig(f'{save_dir}figure01_F.svg', dpi=200)
-f1f.savefig(f'{save_dir}figure01_F.png', dpi=200)
+f1f.savefig(os.path.join(save_dir, 'figure01_F.svg'), dpi=200)
+f1f.savefig(os.path.join(save_dir, 'figure01_F.png'), dpi=200)
 
 # =============================================================================
 # Figure 1I and 1J
@@ -376,7 +381,9 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 n_samples = 20
 grid_seeds = np.arange(1, 11, 1)
 tuning = 'full'
+
 fname = results_dir + 'pickled/neural_codes_full.pkl'
+fname = os.path.join(results_dir, 'pickled', 'neural_codes_full.pkl')
 with open(fname, 'rb') as f:
     all_codes = pickle.load(f)
 
@@ -562,8 +569,8 @@ f1j.subplots_adjust(left=0.2, bottom=0.3, right=0.9, top=0.9, wspace=1)
 _adjust_box_widths(f1i, 0.7)
 _adjust_box_widths(f1j, 0.7)
 plt.rcParams["svg.fonttype"] = "none"
-f1i.savefig(f'{save_dir}figure01_I_cbar.svg', dpi=200)
-f1i.savefig(f'{save_dir}figure01_I_cbar.png', dpi=200)
-f1j.savefig(f'{save_dir}figure01_J_cbar.svg', dpi=200)
-f1j.savefig(f'{save_dir}figure01_J_cbar.png', dpi=200)
+f1i.savefig(os.path.join(save_dir, 'figure01_I_cbar.svg'), dpi=200)
+f1i.savefig(os.path.join(save_dir, 'figure01_I_cbar.png'), dpi=200)
+f1j.savefig(os.path.join(save_dir, 'figure01_J_cbar.svg'), dpi=200)
+f1j.savefig(os.path.join(save_dir, 'figure01_J_cbar.png'), dpi=200)
 

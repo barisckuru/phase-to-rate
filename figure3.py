@@ -10,8 +10,10 @@ import pickle
 import numpy as np
 import seaborn as sns
 import pandas as pd
-import grid_model
-from figure_functions import _make_cmap, _precession_spikes, _adjust_box_widths
+from phase_to_rate import grid_model
+from phase_to_rate.figure_functions import (_make_cmap, _precession_spikes,
+                              _adjust_box_widths)
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -20,14 +22,15 @@ import matplotlib.font_manager
 from scipy.stats import pearsonr,  spearmanr
 from scipy import stats
 import copy
-from neural_coding import load_spikes, rate_n_phase
-from perceptron import run_perceptron
+from phase_to_rate.neural_coding import load_spikes, rate_n_phase
+from phase_to_rate.perceptron import run_perceptron
 import os
 
 
 # file directory
-results_dir = '/home/baris/results/'
-save_dir = '/home/baris/paper/figures/figure03/'
+dirname = os.path.dirname(__file__)
+results_dir = os.path.join(dirname, 'data')
+save_dir = dirname
 
 # plotting settings
 sns.set(style='ticks', palette='deep', font='Arial', color_codes=True)
@@ -45,19 +48,14 @@ rate_pal = {'non-shuffled': '#09316c', 'shuffled': '#0a9396'}
 # =============================================================================
 # Figure 3 B
 # =============================================================================
-           
-fname = 'figure03B_threshold_n_loss.pkl'
-save_pickle = '/home/baris/results/pickled/'
-with open(save_pickle+fname, 'wb') as f:
-    pickle.dump(th_dict, f)
 
-th_dir = 'pickled/figure03B_threshold_n_loss.pkl'
 # keys in this file are 'loss' and 'th_cross'
-fname = results_dir + th_dir
+th_dir = 'figure03B_threshold_n_loss.pkl'
+fname = os.path.join(results_dir, 'pickled', th_dir)
 with open(fname, 'rb') as f:
     thresholds = pickle.load(f)
-    
-    
+
+
 f3b, ax1 = plt.subplots(figsize=(2.5*cm, 4*cm))
 ax1.plot(thresholds['loss']['nearby'], 'b-')
 ax1.plot(thresholds['loss']['intermediate'], 'b--')
@@ -78,16 +76,16 @@ ax1.set_ylim(0, 0.55)
 sns.despine(fig=f3b)
 f3b.subplots_adjust(bottom=0.3, wspace=1, top=0.9, left=0.3)
 plt.rcParams["svg.fonttype"] = "none"
-f3b.savefig(f'{save_dir}figure03_B.svg', dpi=200)
-f3b.savefig(f'{save_dir}figure03_B.png', dpi=200)
+f3b.savefig(os.path.join(save_dir, 'figure03_B.svg'), dpi=200)
+f3b.savefig(os.path.join(save_dir, 'figure03_B.png'), dpi=200)
 
 # =============================================================================
 # Figure 3 C
 # =============================================================================
-plt.close('all')
+# plt.close('all')
 
-full_dir = 'pickled/75-15_full_perceptron_speed.pkl'
-fname = results_dir + full_dir
+fname = os.path.join(results_dir, 'pickled', '75-15_full_perceptron_speed.pkl')
+
 with open(fname, 'rb') as f:
     full_load = pickle.load(f)
     
@@ -130,8 +128,8 @@ sns.despine(ax=ax1)
 sns.despine(ax=ax2)
 f3c.subplots_adjust(bottom=0.3, hspace=1, top=0.9, left=0.25, right=0.6)
 plt.rcParams["svg.fonttype"] = "none"
-f3c.savefig(f'{save_dir}figure03_C.svg', dpi=200)
-f3c.savefig(f'{save_dir}figure03_C.png', dpi=200)
+f3c.savefig(os.path.join(save_dir, 'figure03_C.svg'), dpi=200)
+f3c.savefig(os.path.join(save_dir, 'figure03_C.png'), dpi=200)
 
 f3c2, ax = plt.subplots(figsize=(3*cm, 4*cm))
 ax.set_ylim(0,2.5)
@@ -152,15 +150,15 @@ sns.boxplot(x='code', y='division', data=grid_all, palette=palette,
 f3c2.subplots_adjust(bottom=0.2, hspace=0.5, top=0.95, left=0.25, right=0.9)
 sns.despine(ax=ax)
 plt.rcParams["svg.fonttype"] = "none"
-f3c2.savefig(f'{save_dir}figure03_C2.svg', dpi=200)
-f3c2.savefig(f'{save_dir}figure03_C2.png', dpi=200)
+f3c2.savefig(os.path.join(save_dir, 'figure03_C2.svg'), dpi=200)
+f3c2.savefig(os.path.join(save_dir, 'figure03_C2.png'), dpi=200)
 # =============================================================================
 # Figure 3 D
 # =============================================================================
-plt.close('all')
+# plt.close('all')
 
-full_dir = 'pickled/75-15_full_perceptron_speed.pkl'
-fname = results_dir + full_dir
+fname = os.path.join(results_dir, 'pickled', '75-15_full_perceptron_speed.pkl')
+
 with open(fname, 'rb') as f:
     full_load = pickle.load(f)
     
@@ -194,16 +192,17 @@ ax1.set_ylabel('Speed')
 ax2.set_ylabel('Speed')
 ax2.set_xlabel('Distance (cm)')
 plt.rcParams["svg.fonttype"] = "none"
-f3d.savefig(f'{save_dir}figure03_D.svg', dpi=200)
-f3d.savefig(f'{save_dir}figure03_D.png', dpi=200)
+f3d.savefig(os.path.join(save_dir, 'figure03_D.svg'), dpi=200)
+f3d.savefig(os.path.join(save_dir, 'figure03_D.png'), dpi=200)
 
 # =============================================================================
 # Figure 3 E
 # =============================================================================
-plt.close('all')
+# plt.close('all')
 
 noff_dir = 'pickled/75-15_no-feedforward_perceptron_speed_polar_inc.pkl'
-fname = results_dir + noff_dir
+noff_dir = os.path.join(results_dir, 'pickled', '75-15_no-feedforward_perceptron_speed_polar_inc.pkl')
+
 with open(fname, 'rb') as f:
     noff_load = pickle.load(f)
 
@@ -237,17 +236,17 @@ ax1.set_ylabel('Speed')
 ax2.set_ylabel('Speed')
 ax2.set_xlabel('Distance (cm)')
 plt.rcParams["svg.fonttype"] = "none"
-f3e.savefig(f'{save_dir}figure03_E.svg', dpi=200)
-f3e.savefig(f'{save_dir}figure03_E.png', dpi=200)
+f3e.savefig(os.path.join(save_dir, 'figure03_E.svg'), dpi=200)
+f3e.savefig(os.path.join(save_dir, 'figure03_E.png'), dpi=200)
 
 
 # =============================================================================
 # Figure 3 F
 # =============================================================================
-plt.close('all')
+# plt.close('all')
 
 nofb_dir = 'pickled/75-15_no-feedback_perceptron_speed_polar_inc.pkl'
-fname = results_dir + nofb_dir
+fname = os.path.join(results_dir, 'pickled', '75-15_no-feedback_perceptron_speed_polar_inc.pkl')
 with open(fname, 'rb') as f:
     nofb_load = pickle.load(f)
 
@@ -281,17 +280,17 @@ ax1.set_ylabel('Speed')
 ax2.set_ylabel('Speed')
 ax2.set_xlabel('Distance (cm)')
 plt.rcParams["svg.fonttype"] = "none"
-f3f.savefig(f'{save_dir}figure03_F.svg', dpi=200)
-f3f.savefig(f'{save_dir}figure03_F.png', dpi=200)
+f3f.savefig(os.path.join(save_dir, 'figure03_F.svg'), dpi=200)
+f3f.savefig(os.path.join(save_dir, 'figure03_F.png'), dpi=200)
 
 
 # =============================================================================
 # Figure 3 G
 # =============================================================================
-plt.close('all')
+# plt.close('all')
 
 disinh_dir = 'pickled/75-15_disinhibited_perceptron_speed_polar_inc.pkl'
-fname = results_dir + disinh_dir
+fname = os.path.join(results_dir, 'pickled', '75-15_disinhibited_perceptron_speed_polar_inc.pkl')
 with open(fname, 'rb') as f:
     disinh_load = pickle.load(f)
 
@@ -325,13 +324,13 @@ ax1.set_ylabel('Speed')
 ax2.set_ylabel('Speed')
 ax2.set_xlabel('Distance (cm)')
 plt.rcParams["svg.fonttype"] = "none"
-f3g.savefig(f'{save_dir}figure03_G.svg', dpi=200)
-f3g.savefig(f'{save_dir}figure03_G.png', dpi=200)
+f3g.savefig(os.path.join(save_dir, 'figure03_G.svg'), dpi=200)
+f3g.savefig(os.path.join(save_dir, 'figure03_G.png'), dpi=200)
 
 # =============================================================================
 # Figure 3 H and I 
 # =============================================================================
-plt.close('all')
+# plt.close('all')
 full_gra_rate['tuning'] = 320*['full']
 noff_gra_rate['tuning'] = 320*['noff']
 nofb_gra_rate['tuning'] = 320*['nofb']
@@ -367,7 +366,7 @@ div = nonshuff_speed/shuff_speed
 phase_all_3.reset_index(drop=True, inplace=True)
 phase_all_3['division'] = div
 
-plt.close('all')
+# plt.close('all')
 f3hi, (ax1, ax2) = plt.subplots(1,2, figsize=(7*cm, 3.5*cm), sharey=True)
 # f3i, ax2 = plt.subplots(figsize=(3.5*cm, 3.5*cm), sharex=True)
 
@@ -402,8 +401,8 @@ ax1.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
 f3hi.subplots_adjust(bottom=0.3, top=0.95, left=0.2, right=0.95, wspace=0.7)
 plt.rcParams["svg.fonttype"] = "none"
-f3hi.savefig(f'{save_dir}figure03_H&I.svg', dpi=200)
-f3hi.savefig(f'{save_dir}figure03_H&I.png', dpi=200)
+f3hi.savefig(os.path.join(save_dir, 'figure03_H&I.svg'), dpi=200)
+f3hi.savefig(os.path.join(save_dir, 'figure03_H&I.png'), dpi=200)
 
 
 # =============================================================================
@@ -420,6 +419,7 @@ tunes = ['full', 'noff', 'nofb', 'disinh']
 for tuning in tunes:
     f_dir = f'pickled/{tuning}_adjusted_perceptron.pkl'
     fname = results_dir + f_dir
+    fname = os.path.join(results_dir, 'pickled', f'{tuning}_adjusted_perceptron.pkl')
     with open(fname, 'rb') as f:
         loaded = pickle.load(f)
         df = loaded.loc[loaded['grid_seed']<21]
@@ -431,7 +431,7 @@ for tuning in tunes:
                         ignore_index=True)
 
 output_name = '/home/baris/results/excel/figure3J&K_adjusted_data-perceptron.xlsx'
-
+output_name = os.path.join(results_dir, 'excel', 'figure3J&K_adjusted_data-perceptron.xlsx')
 with pd.ExcelWriter(output_name) as writer:
     rate_df.to_excel(writer, sheet_name='rate code')
     phase_df.to_excel(writer, sheet_name='phase code')
@@ -456,7 +456,7 @@ phase_all_3.reset_index(drop=True, inplace=True)
 phase_all_3['division'] = div
 
 
-plt.close('all')
+# plt.close('all')
 f3jk, (ax1, ax2) = plt.subplots(1,2, figsize=(7*cm, 3.5*cm), sharey=True)
 # f3i, ax2 = plt.subplots(figsize=(3.5*cm, 3.5*cm), sharex=True)
 
@@ -492,109 +492,6 @@ ax1.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
                     , rotation=60)
 f3jk.subplots_adjust(bottom=0.3, top=0.95, left=0.2, right=0.95, wspace=0.7)
 plt.rcParams["svg.fonttype"] = "none"
-f3jk.savefig(f'{save_dir}figure03_J&K.svg', dpi=200)
-f3jk.savefig(f'{save_dir}figure03_J&K.png', dpi=200)
+f3jk.savefig(os.path.join(save_dir, 'figure03_J&K.svg'), dpi=200)
+f3jk.savefig(os.path.join(save_dir, 'figure03_J&K.png'), dpi=200)
 
-
-# # =============================================================================
-# # 3J 
-# # =============================================================================
-# plt.close('all')
-# grid_seeds = list(np.arange(11,21,1))
-# f3j, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
-
-# sns.boxplot(x='tuning', y='speed', hue='shuffling', ax=ax, zorder=1,
-#             data=rate_df, linewidth=0.5, fliersize=1,
-#             palette=rate_pal, hue_order=['non-shuffled', 'shuffled'])
-# loc = 0.4
-# tunings = ['full', 'noff', 'nofb', 'disinh']
-# for grid in grid_seeds:
-#     tune_idx = 0
-#     for tuning in tunings:
-#         ns_data = rate_df.loc[(rate_df['shuffling']=='non-shuffled')
-#                                       &
-#                                       (rate_df['tuning']==tuning)
-#                                       &
-#                                       (rate_df['grid_seed']==grid)]
-#         s_data = rate_df.loc[(rate_df['shuffling']=='shuffled')
-#                                       &
-#                                       (rate_df['tuning']==tuning)
-#                                       &
-#                                       (rate_df['grid_seed']==grid)]
-#         if (np.array(ns_data['speed']).size > 0 and
-#             np.array(s_data['speed']).size > 0):
-#             ns_info = np.array(ns_data['speed'])[0]
-#             s_info = np.array(s_data['speed'])[0]   
-#             sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax, alpha=0.7,
-#                          y = [ns_info, s_info], color='k', linewidth = 0.2)
-#             sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax,
-#                           y = [ns_info, s_info], color='k', s = 3, alpha=0.7)
-#             print(tuning)
-#         tune_idx+=1
-# ax.ticklabel_format(style='sci', scilimits=[0, 0], axis='y')
-# ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
-#                     , rotation=60)
-# handles, labels = ax.get_legend_handles_labels()
-# ax.legend(handles[:2], labels[:2], bbox_to_anchor=(0, 1.4),
-#           loc='upper left', borderaxespad=0., title=None,frameon=False)
-# # ax.set_title('adjusted rate codes')
-# ax.set_ylabel('Speed')
-# f3j.subplots_adjust(left=0.25, bottom=0.3, right=0.9, top=0.8)
-# sns.despine(fig=f3j)
-# _adjust_box_widths(f3j, 0.7)
-# plt.rcParams["svg.fonttype"] = "none"
-# f3j.savefig(f'{save_dir}figure03_J.svg', dpi=200)
-# f3j.savefig(f'{save_dir}figure03_J.png', dpi=200)
-
-# # =============================================================================
-# # 3K
-# # =============================================================================
-# plt.close('all')
-# grid_seeds = list(np.arange(11,21,1))
-# f3k, ax = plt.subplots(1,1, figsize=(4*cm, 4*cm))
-
-# sns.boxplot(x='tuning', y='speed', hue='shuffling', ax=ax, zorder=1,
-#             data=phase_df, linewidth=0.5, fliersize=1,
-#             palette=phase_pal, hue_order=['non-shuffled', 'shuffled'])
-# loc = 0.4
-# tunings = ['full', 'noff', 'nofb', 'disinh']
-# for grid in grid_seeds:
-#     tune_idx = 0
-#     for tuning in tunings:
-#         ns_data = phase_df.loc[(phase_df['shuffling']=='non-shuffled')
-#                                       &
-#                                       (phase_df['tuning']==tuning)
-#                                       &
-#                                       (phase_df['grid_seed']==grid)]
-#         s_data = phase_df.loc[(phase_df['shuffling']=='shuffled')
-#                                       &
-#                                       (phase_df['tuning']==tuning)
-#                                       &
-#                                       (phase_df['grid_seed']==grid)]
-#         if (np.array(ns_data['speed']).size > 0 and
-#             np.array(s_data['speed']).size > 0):
-#             ns_info = np.array(ns_data['speed'])[0]
-#             s_info = np.array(s_data['speed'])[0]   
-#             sns.lineplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax, alpha=0.7,
-#                          y = [ns_info, s_info], color='k', linewidth = 0.2)
-#             sns.scatterplot(x= [-loc/2+tune_idx, loc/2+tune_idx], ax=ax,
-#                           y = [ns_info, s_info], color='k', s = 3, alpha=0.7)
-#             print(tuning)
-#         tune_idx+=1
-# ax.ticklabel_format(style='sci', scilimits=[0, 0], axis='y')
-# ax.set_xticklabels(['full', 'no ff', 'no fb', 'disinh']
-#                     , rotation=60)
-# handles, labels = ax.get_legend_handles_labels()
-# ax.legend(handles[:2], labels[:2], bbox_to_anchor=(0, 1.4),
-#           loc='upper left', borderaxespad=0., title=None, frameon=False)
-# # ax.set_title('adjusted phase codes')
-# ax.set_ylabel('Speed')
-# f3k.subplots_adjust(left=0.25,  bottom=0.3, right=0.9, top=0.8)
-# sns.despine(fig=f3k)
-# _adjust_box_widths(f3k, 0.7)
-# plt.rcParams["svg.fonttype"] = "none"
-# f3k.savefig(f'{save_dir}figure03_K.svg', dpi=200)
-# f3k.savefig(f'{save_dir}figure03_K.png', dpi=200)
-       
-        
-       
