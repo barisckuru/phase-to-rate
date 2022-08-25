@@ -12,7 +12,7 @@ realistic model of the dentate gyrus. The main purpose of this repository is to 
 You therefore need to install it NEURON manually on Windows. [Get the precompiled Windows installer here](https://www.neuron.yale.edu/neuron/download)
 Use the installer to install neuron in `C:\nrn`. Once installed you need to find a way to add `C:\nrn\lib\python` to your Python path. [Try something like this](https://stackoverflow.com/questions/3701646/how-to-add-to-the-pythonpath-in-windows-so-it-finds-my-modules-packages). Sometimes you also need to manually set the environmental variable `NEURONHOME` to `C:\nrn` but most of the time the installer should take care of that. To check if it worked, start `python` and try `from neuron import h, gui`. If this runs without error NEURON is installed.
 - Try `import phase_to_rate` to check that the setup worked.
-- Run `python 01_simulate.py` to start generating some raw data.
+- Run `python 01_simulate.py` to start generating some raw data or run figure1.py if you have the raw data to reproduce the first figure.
   
 If you encounter problems with creating the setup that relate to pydentate you can look for a solution in the [pydentate repo](https://github.com/danielmk/pydentate). There are some known issues that relate to installing NEURON on windows. You can contact danielmuellermsc@gmail.com for technical questions relating to this repository and the setup.
 
