@@ -10,10 +10,8 @@ import pickle
 import numpy as np
 import seaborn as sns
 import pandas as pd
-from figure_functions import (_make_cmap,
-                              _precession_spikes,
-                              _adjust_box_widths,
-                              f5_load_data)
+from phase_to_rate.figure_functions import (_make_cmap, _precession_spikes,
+                              _adjust_box_widths, f5_load_data)
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -22,11 +20,13 @@ import matplotlib.font_manager
 from scipy.stats import pearsonr,  spearmanr
 from scipy import stats
 import copy
+import os
+import pickle
 
 
-
-results_dir = r'C:\Users\Daniel\repos\phase-to-rate\results\pickled'
-save_dir = r'C:\Users\Daniel\repos\phase-to-rate'
+dirname = os.path.dirname(__file__)
+results_dir = os.path.join(dirname, 'data')
+save_dir = dirname
 
 # plotting settings
 sns.set(style='ticks', palette='deep', font='Arial', color_codes=True)
@@ -38,16 +38,12 @@ plt.rc('ytick', labelsize=8) #fontsize of the y tick labels
 plt.rc('legend', fontsize=8) #fontsize of the legend
 cm=1/2.54
 
-'/home/baris/Dropbox/10_dynamic_pattern_separation/olli_data/FFinh_assymSTDP/'
-"condition_dict['full'][1]['GC_spikes']"
-
-
-
 # =============================================================================
 # load data for B, C and J     ## this should be B,C, F, 
 # =============================================================================
 fname = 'figure05_B-C-J_condition_dict.pkl'
-rates_df, weights_df = f5_load_data(fname, results_dir)
+curr_dir = os.path.join(results_dir, 'pickled')
+rates_df, weights_df = f5_load_data(fname, curr_dir)
 
 
 
@@ -63,6 +59,9 @@ sns.boxplot(x='tuning', y='mean rate', ax=ax1, zorder=1,
             palette=granule_pal, linewidth=0.5, fliersize=1)
 loc = 1
 tune_idx = 0.5
+
+grid_seeds = range(1, 31)
+
 for grid in grid_seeds:
     full_data = granule_rates_df.loc[(granule_rates_df['tuning'] == 'full')
                                      &
@@ -134,7 +133,7 @@ f5c.savefig(f'{save_dir}figure05_C_ca3_bar.png', dpi=200)
 # interneuron
 # plt.close('all')
 intn_pal = {'full': '#495057', 'noFB': '#6c757d'}
-intn_rates_df = weights_df.loc[rates_df['cell']=='interneuron']
+intn_rates_df = rates_df.loc[rates_df['cell']=='interneuron']
 f5c2, ax1 = plt.subplots(1, 1, figsize=(2.5*cm, 4*cm))
 sns.boxplot(x='tuning', y='mean rate', ax=ax1, zorder=1,
             data=intn_rates_df,
@@ -216,7 +215,7 @@ f5l, ax1 = plt.subplots(1, 1, figsize=(2.5*cm, 4*cm))
 df = weights_df['weights/rates'] = weights_df['mean weight']/ca3_rates_df['mean rate']
 
 sns.boxplot(x='tuning', y='weights/rates', ax=ax1, zorder=1,
-            data=df,
+            data=weights_df,
             palette=ca3_pal, linewidth=0.5, fliersize=1)
 loc = 1
 tune_idx = 0.5
@@ -253,7 +252,9 @@ f5l.savefig(f'{save_dir}figure05_L_bar.png', dpi=200)
 # =============================================================================
 
 fname = 'figure05_F_condition_dict.pkl'
-rates_df, weights_df = f5_load_data(fname, results_dir)
+curr_dir = os.path.join(results_dir, 'pickled')
+rates_df, weights_df = f5_load_data(fname, curr_dir)
+
 
 ca3_pal = {'full': '#09422d', 'noFB': '#66a253'}
 f5f, ax1 = plt.subplots(1, 1, figsize=(2.5*cm, 4*cm))
