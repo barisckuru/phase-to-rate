@@ -15,6 +15,8 @@ from matplotlib.colors import LinearSegmentedColormap as lcmap
 import numpy as np
 from matplotlib.patches import PathPatch
 import os
+import pickle
+import pandas as pd
 
 # make colormaps with hex codes
 def _make_cmap(color_list, N=100):
