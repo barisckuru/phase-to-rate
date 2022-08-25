@@ -14,6 +14,7 @@ from scipy import ndimage
 from matplotlib.colors import LinearSegmentedColormap as lcmap
 import numpy as np
 from matplotlib.patches import PathPatch
+import os
 
 # make colormaps with hex codes
 def _make_cmap(color_list, N=100):
@@ -119,7 +120,7 @@ def _adjust_bar_widths(ax, new_value):
         
 # figure 5 data
 def f5_load_data (fname, path):
-    with open(path + fname, 'rb') as f:
+    with open(os.path.join(path, fname), 'rb') as f:
         condition_dict = pickle.load(f)
     
     gseeds = 30
