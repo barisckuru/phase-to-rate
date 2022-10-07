@@ -99,25 +99,25 @@ non_shuffled = df[df['shuffling'] == 'non-shuffled'].sort_values(['grid_seed', '
 non_shuffled['decay_tau_norm'] = non_shuffled['decay_tau'].to_numpy() / shuffled['decay_tau'].to_numpy()
 
 shuffled_full = []
-shuffled_adjusted = []
+shuffled_nofb = []
 nonshuffled_full = []
-nonshuffled_adjusted = []
+nonshuffled_nofb = []
 
 for k in files.keys():
     if 'non-shuffled' in k:
-        if 'adjusted' in k:
-            nonshuffled_adjusted.append(files[k][1])
+        if 'no-feedback' in k:
+            nonshuffled_nofb.append(files[k][1])
         else:
             nonshuffled_full.append(files[k][1])
     else:
-        if 'adjusted' in k:
-            shuffled_adjusted.append(files[k][1])
+        if 'no-feedback' in k:
+            shuffled_nofb.append(files[k][1])
         else:
             shuffled_full.append(files[k][1])
 shuffled_full = np.array(shuffled_full)
-shuffled_adjusted = np.array(shuffled_adjusted)
+shuffled_nofb = np.array(shuffled_nofb)
 nonshuffled_full = np.array(nonshuffled_full)
-nonshuffled_adjusted = np.array(nonshuffled_adjusted)
+nonshuffled_nofb = np.array(nonshuffled_nofb)
 
 """Plotting"""
 fig = plt.figure(figsize=(8, 11), constrained_layout=True)
@@ -142,7 +142,7 @@ ax2 = fig.add_subplot(gs[0:2,4:])
 x = np.arange(200)
 legend_names = ["Full", "NoFB Adjusted"]
 colors = ['#716969', '#a09573']
-for idx, curr_data in enumerate([nonshuffled_full, nonshuffled_adjusted]):
+for idx, curr_data in enumerate([nonshuffled_full, nonshuffled_nofb]):
     print(curr_data.shape[0])
     y = (curr_data / curr_data[:,0].mean()).mean(axis=0)
     y_err = (curr_data / curr_data[:,0].mean()).std(axis=0) / np.sqrt(curr_data.shape[0])
