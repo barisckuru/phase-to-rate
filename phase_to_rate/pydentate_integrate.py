@@ -184,9 +184,8 @@ def granule_simulate_noisy(
     PP_to_GCs = []
     for x in start_idc:
         curr_idc = np.concatenate((GC_indices[x:n_granule], GC_indices[0:x]))
-        # PP_to_GCs.append(np.random.choice(curr_idc,
-        #                                   size=100, replace=False, p=pdf_gc))
-        PP_to_GCs.append([10])
+        PP_to_GCs.append(np.random.choice(curr_idc,
+                                          size=100, replace=False, p=pdf_gc))
 
     PP_to_GCs = np.array(PP_to_GCs)
 
@@ -215,13 +214,9 @@ def granule_simulate_noisy(
 
     """CREATE NOISE"""
     noise = np.random.normal(0, noise_scale, size=(n_granule, int(dur_ms/dt)))
-    # noise = noise * 0
-    # pdb.set_trace()
     noise_clamps = []
     noise_vectors = []
     time_vectors = []
-    # tvec_template = np.arange(0,dur_ms,dt)
-    # pdb.set_trace()
     for idx, gc in enumerate(nw.populations[0]):
         ic = h.IClamp(gc.soma(0.5))
         ic.delay = 0.0

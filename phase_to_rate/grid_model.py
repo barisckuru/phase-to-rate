@@ -15,6 +15,10 @@ from scipy import interpolate
 from neo.core import AnalogSignal
 import quantities as pq
 from elephant import spike_train_generation as stg
+import os
+import scipy.ndimage
+import scipy.signal
+import matplotlib.pyplot as plt
 
 
 def _grid_maker(spacing, orientation, pos_peak,
@@ -240,9 +244,10 @@ def _interp(arr, dur_s, def_dt_s=0.025, new_dt_s=0.002):
     return interp_arr, new_t_arr
 
 
-def _import_phase_dist(
-        path="norm_grid_phase_dist.npz"):
+def _import_phase_dist(path="norm_grid_phase_dist.npz"):
     """Import default, non shuffled and saved phase distributions."""
+    dirname = os.path.dirname(__file__)
+    path = os.path.abspath(os.path.join(path, os.pardir, 'data', 'norm_grid_phase_dist.npz'))
     norm_n = np.load(path)["grid_norm_dist"]
     dt_s = 0.001
     dur_s = 0.1
@@ -499,5 +504,34 @@ def grid_simulate(
 
 
 if __name__ == '__main__':
-    test_grids, _ = grid_simulate([75], 2000, 1,
-                                  np.array([150, 151]), "non-shuffled")
+    test_grids = grid_simulate([75], 2000, 1,
+                                  np.array([150, 151]), "non-shuffled",
+                                  large_output=True)
+    
+    ec_two_cycle_averaged = np.reshape(test_grids[-1].mean(axis=0)[:, 0], (1000//100, 100))
+    ec_two_cycle_averaged = ec_two_cycle_averaged.mean(axis=0)
+    x = np.linspace(0, 1, 2000)
+    y = np.flip(scipy.signal.sawtooth(2 * np.pi * 40 * x))
+    y += 1
+    kernel_size = 20
+    y_smoothed = scipy.ndimage.gaussian_filter1d(y, 5)
+    phase_shift = 25
+    y_smoothed_phase_shifted = y_smoothed[phase_shift:1000+phase_shift] * 6
+    ec_three_cycle_averaged = np.reshape(y_smoothed_phase_shifted, (1000//100, 100))
+    ec_three_cycle_averaged = ec_three_cycle_averaged.mean(axis=0)
+    t = np.linspace(0, 2000, 1000)
+    t_inset = np.linspace(0, 200, 100)
+    plt.figure()
+    plt.plot(t, test_grids[-1].mean(axis=0)[:, 0])
+    plt.plot(t, y_smoothed[25:1025]*6)
+    plt.xlabel("Time (ms)")
+    plt.ylabel("Total Activity (AU)")
+    plt.legend(("EC2 Activity", "EC3 Activity"))
+    
+    plt.figure()
+    plt.plot(t_inset, ec_two_cycle_averaged)
+    plt.plot(t_inset, ec_three_cycle_averaged)
+    plt.xlabel("Time (ms)")
+    plt.ylabel("Total Activity (AU)")
+    plt.legend(("EC2 Activity", "EC3 Activity"))
+

@@ -21,7 +21,7 @@ pr = argparse.ArgumentParser(description='Local pattern separation paradigm')
 pr.add_argument('-grid_seed',
                 type=int,
                 help='Grid seed to run',
-                default= 1,
+                default=10,
                 dest='grid_seed')
 pr.add_argument('-noise_scale',
                 type=float,
@@ -29,7 +29,6 @@ pr.add_argument('-noise_scale',
                 default=0.05,
                 dest='noise_scale')
 args = pr.parse_args()
-
 
 """Setup"""
 dirname = os.path.dirname(__file__)
@@ -70,8 +69,8 @@ verbose = True
 
 """Start simulating each grid seed"""
 for grid_seed in grid_seeds:
-    file_name = ("grid-seed_trajectory_poisson-seeds_duration_shuffling_tuning_pp-weight_noise-scale" +
-        f"{grid_seed}_{trajectories}_{poisson_seeds[0]}-{poisson_seeds[-1]}_{parameters['dur_ms']}_{shuffling}_{network_type}_{parameters['pp_weight']}_{parameters['noise_scale']}_")
+    file_name = ("grid-seed_trajectory_poisson-seeds_duration_shuffling_tuning_pp-weight_noise-scale_" +
+        f"{grid_seed}_{trajectories}_{poisson_seeds[0]}-{poisson_seeds[-1]}_{parameters['dur_ms']}_{shuffling}_{network_type}_{parameters['pp_weight']}_{parameters['noise_scale']}")
     file_path = os.path.join(results_dir, file_name)
 
     if verbose: print(f"Start simulating {file_name}")
@@ -100,7 +99,7 @@ for grid_seed in grid_seeds:
                 pp_weight=parameters['pp_weight'],
                 noise_scale=parameters['noise_scale']
             )
-            granule_spikes[traj][poisson_seed] = granule_spikes_poiss[0]
+            granule_spikes[traj][poisson_seed] = granule_spikes_poiss
             
     storage = shelve.open(file_path, writeback=True)
     storage["grid_spikes"] = copy.deepcopy(grid_spikes)
