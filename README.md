@@ -45,6 +45,8 @@ These scripts depend on modules in `phase_to_rate`. A brief explanation on those
 - pydenate_integrate.py
     - Functions to simulate pydentate with grid cell input.
 
+The 'supplemental' directory contains scripts to generate the supplemental figure.
+
 # Authors
 Barış Can Kuru - [Institute of Experimental Epileptology and Cognition Research](https://eecr-bonn.de/)
 
