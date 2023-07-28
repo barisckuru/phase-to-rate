@@ -58,8 +58,7 @@ for grid_seed in grid_seeds:
         granule_phase_code,
         granule_polar_code,
     ) = rate_n_phase(granule_spikes, trajectories, n_samples)
-    
-    
+
     # shuffled
     s_path = (path + str(grid_seed) + "_2000_shuffled_"+str(tuning))
     s_grid_spikes = load_spikes(s_path, "grid", trajectories, n_samples)

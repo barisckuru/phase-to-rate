@@ -1,0 +1,1 @@
+python 01S1_simulate_with_noise.py -grid_seed 1 -noise_scale 0.05 &

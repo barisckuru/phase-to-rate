@@ -7,7 +7,7 @@ Created on Wed Feb 23 12:29:15 2022
 """
 import pickle
 import numpy as np
-import seaborn as sns
+# import seaborn as sns
 import pandas as pd
 from phase_to_rate import grid_model
 from phase_to_rate.figure_functions import (_make_cmap, _precession_spikes,
@@ -22,31 +22,225 @@ from scipy import stats
 import copy
 import os
 import sys
+import shelve
+from copy import deepcopy
 
 
 # file directory
 dirname = os.path.dirname(__file__)
-results_dir = os.path.join(dirname, 'data')
+results_dir = os.path.join(dirname, 'data', 'multiple_celltypes_adjusted')
 save_dir = dirname
 
 # plotting settings
-sns.set(style='ticks', palette='deep', font='Arial', color_codes=True)
-plt.rc('font', size=10) #controls default text size
-plt.rc('axes', titlesize=8) #fontsize of the title
-plt.rc('axes', labelsize=10) #fontsize of the x and y labels
-plt.rc('xtick', labelsize=10) #fontsize of the x tick labels
-plt.rc('ytick', labelsize=10) #fontsize of the y tick labels
-plt.rc('legend', fontsize=10) #fontsize of the legend
+plt.rc('font', size=18) #controls default text size
+plt.rcParams["svg.fonttype"] = "none"
 cm=1/2.54
-
 
 # =============================================================================
 # Figure 2 A
 # =============================================================================
-f2a, axes = plt.subplots(2,2, figsize=(8*cm, 5*cm), sharey=True, sharex=True)
-my_pal = {'grid': '#716969', 'granule': '#09316c'}
 
 tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
+shufflings = ['non-shuffled']
+
+all_files = set(['.'.join(x.split('.')[:-1]) for x in os.listdir(results_dir)])
+
+poisson_seeds = range(100, 110)
+grid_seeds = range(1, 6)
+cell_types = range(4)
+
+all_spikes = {}
+for t in tunings:
+    all_spikes[t] = {}
+    for s in shufflings:
+        all_spikes[t][s] = {}
+            
+for f in all_files:
+    curr_file = shelve.open(os.path.join(results_dir, f))
+    split = f.split('_')
+    grid_seed = int(split[8])
+    shuffling = split[12]
+    tuning = split[13]
+    all_spikes[tuning][shuffling][grid_seed] = dict(curr_file)
+
+all_phases = deepcopy(all_spikes)
+
+# Calculate phases
+for t in tunings:
+    for s in shufflings:
+        for g in grid_seeds:
+            for ps in poisson_seeds:
+                all_phases[t][s][g]['grid_spikes'][75][ps] = [((spikes % 100) / 100) * (np.pi * 2) for spikes in all_spikes[t][s][g]['grid_spikes'][75][ps]]
+                
+                all_phases[t][s][g]['all_spikes'][75][ps] = list(all_phases[t][s][g]['all_spikes'][75][ps])
+                for ct in cell_types:
+                    all_phases[t][s][g]['all_spikes'][75][ps][ct] = [((spikes % 100) / 100) * (np.pi * 2) for spikes in all_spikes[t][s][g]['all_spikes'][75][ps][ct]]
+
+all_phases_flattened = {}
+for t in tunings:
+    all_phases_flattened[t] = {}
+    for s in shufflings:
+        all_phases_flattened[t][s] = {}
+        for ct in ['grid', 'granule', 'mossy', 'basket', 'hipp']:
+            all_phases_flattened[t][s][ct] = np.array([])
+
+for t in tunings:
+    for s in shufflings:
+        for g in grid_seeds:
+            for ps in poisson_seeds:
+                for cell in all_phases[t][s][g]['grid_spikes'][75][ps]:
+                    all_phases_flattened[t][s]['grid'] = np.concatenate((all_phases_flattened[t][s]['grid'], cell))
+                for ct_idx, ct in enumerate(['granule', 'mossy', 'basket', 'hipp']):
+                    for cell in all_phases[t][s][g]['all_spikes'][75][ps][ct_idx]:
+                        all_phases_flattened[t][s][ct] = np.concatenate((all_phases_flattened[t][s][ct], cell))
+
+all_phases_flattened_adjusted = deepcopy(all_phases_flattened)
+
+"""With mossy cells"""
+fig, ax = plt.subplots(2,2)
+my_pal = {'grid': '#1b9e77', 'granule': '#d95f02', 'mossy': '#7570b3', 'basket': '#e7298a', 'hipp': '#66a61e'}
+ax = ax.flatten()
+alpha = 0.6
+shuffling = 'non-shuffled'
+
+density=False
+for idx, t in enumerate(tunings):
+    ax[idx].set_title(t)
+    ax[idx].set_xlabel("Phase (pi)")
+    ax[idx].set_ylabel("Probability Density of Spikes")
+    ax[idx].hist(all_phases_flattened[t][shuffling]['grid'], bins=90, color=my_pal['grid'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['granule'], bins=90, color=my_pal['granule'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['mossy'], bins=90, color=my_pal['mossy'], alpha=alpha, density=density)
+    if density:
+        ax[idx].set_ylim((0,1))
+    ax[idx].set_xlim((0, 2*np.pi))
+    ax[idx].legend(("Grid", "Granule", "Mossy"))
+
+
+fig, ax = plt.subplots(2,2)
+ax = ax.flatten()
+
+for idx, t in enumerate(tunings):
+    ax[idx].set_title(t)
+    ax[idx].set_xlabel("Phase (pi)")
+    ax[idx].set_ylabel("Probability Density of Spikes")
+    ax[idx].hist(all_phases_flattened[t][shuffling]['granule'], bins=90, color=my_pal['granule'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['basket'], bins=90, color=my_pal['basket'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['hipp'], bins=90, color=my_pal['hipp'], alpha=alpha, density=density)
+    if density:
+        ax[idx].set_ylim((0,1))
+    ax[idx].set_xlim((0, 2*np.pi))
+    ax[idx].legend(("Granule", "Basket", "HIPP"))
+    
+fig, ax = plt.subplots(2,2)
+ax = ax.flatten()
+
+for idx, t in enumerate(tunings):
+    ax[idx].set_title(t)
+    ax[idx].set_xlabel("Phase (pi)")
+    ax[idx].set_ylabel("Probability Density of Spikes")
+    ax[idx].hist(all_phases_flattened[t][shuffling]['grid'], bins=90, color=my_pal['grid'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['granule'], bins=90, color=my_pal['granule'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['mossy'], bins=90, color=my_pal['mossy'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['basket'], bins=90, color=my_pal['basket'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['hipp'], bins=90, color=my_pal['hipp'], alpha=alpha, density=density)
+    if density:
+        ax[idx].set_ylim((0,1))
+    ax[idx].set_xlim((0, 2*np.pi))
+    ax[idx].legend(("Grid", "Granule", "Mossy" "Basket", "HIPP"))
+
+fig, ax = plt.subplots(1, 3)
+ax = ax.flatten()
+
+for idx, t in enumerate(['no-feedforward', 'no-feedback', 'disinhibited']):
+    ax[idx].set_title(t)
+    ax[idx].set_xlabel("Phase (pi)")
+    ax[idx].set_ylabel("# of spikes")
+    ax[idx].hist(all_phases_flattened['full'][shuffling]['granule'], bins=90, color=my_pal['granule'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened[t][shuffling]['granule'], bins=90, color=my_pal['basket'], alpha=alpha, density=density)
+    if density:
+        ax[idx].set_ylim((0,1))
+    ax[idx].set_xlim((0, 2*np.pi))
+    ax[idx].legend(("Granule Full", f"Granule {t} adjusted"))
+
+
+# file directory
+dirname = os.path.dirname(__file__)
+results_dir = os.path.join(dirname, 'data', 'multiple_celltypes_non-adjusted')
+save_dir = dirname
+
+tunings = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
+shufflings = ['shuffled', 'non-shuffled']
+
+all_files = set(['.'.join(x.split('.')[:-1]) for x in os.listdir(results_dir)])
+
+poisson_seeds = range(100, 110)
+grid_seeds = range(1, 6)
+cell_types = range(4)
+
+all_spikes = {}
+for t in tunings:
+    all_spikes[t] = {}
+    for s in shufflings:
+        all_spikes[t][s] = {}
+            
+for f in all_files:
+    curr_file = shelve.open(os.path.join(results_dir, f))
+    split = f.split('_')
+    grid_seed = int(split[8])
+    shuffling = split[12]
+    tuning = split[13]
+    all_spikes[tuning][shuffling][grid_seed] = dict(curr_file)
+
+all_phases = deepcopy(all_spikes)
+
+# Calculate phases
+for t in tunings:
+    for s in shufflings:
+        for g in grid_seeds:
+            for ps in poisson_seeds:
+                all_phases[t][s][g]['grid_spikes'][75][ps] = [((spikes % 100) / 100) * (np.pi * 2) for spikes in all_spikes[t][s][g]['grid_spikes'][75][ps]]
+                
+                all_phases[t][s][g]['all_spikes'][75][ps] = list(all_phases[t][s][g]['all_spikes'][75][ps])
+                for ct in cell_types:
+                    all_phases[t][s][g]['all_spikes'][75][ps][ct] = [((spikes % 100) / 100) * (np.pi * 2) for spikes in all_spikes[t][s][g]['all_spikes'][75][ps][ct]]
+
+all_phases_flattened = {}
+for t in tunings:
+    all_phases_flattened[t] = {} 
+    for s in shufflings:
+        all_phases_flattened[t][s] = {}
+        for ct in ['grid', 'granule', 'mossy', 'basket', 'hipp']:
+            all_phases_flattened[t][s][ct] = np.array([])
+
+for t in tunings:
+    for s in shufflings:
+        for g in grid_seeds:
+            for ps in poisson_seeds:
+                for cell in all_phases[t][s][g]['grid_spikes'][75][ps]:
+                    all_phases_flattened[t][s]['grid'] = np.concatenate((all_phases_flattened[t][s]['grid'], cell))
+                for ct_idx, ct in enumerate(['granule', 'mossy', 'basket', 'hipp']):
+                    for cell in all_phases[t][s][g]['all_spikes'][75][ps][ct_idx]:
+                        all_phases_flattened[t][s][ct] = np.concatenate((all_phases_flattened[t][s][ct], cell))
+
+all_phases_flattened_nonadjusted = deepcopy(all_phases_flattened)
+
+fig, ax = plt.subplots(2,2)
+ax = ax.flatten()
+for idx, t in enumerate(tunings):
+    ax[idx].set_title(t)
+    ax[idx].set_xlabel("Phase (pi)")
+    ax[idx].set_ylabel("# of Spikes")
+    ax[idx].hist(all_phases_flattened_nonadjusted [t][shuffling]['granule'], bins=90, color=my_pal['grid'], alpha=alpha, density=density)
+    ax[idx].hist(all_phases_flattened_adjusted [t][shuffling]['granule'], bins=90, color=my_pal['granule'], alpha=alpha, density=density)
+    if density:
+        ax[idx].set_ylim((0,1))
+    ax[idx].set_xlim((0, 2*np.pi))
+    ax[idx].set_ylim((0, 8000))
+    ax[idx].legend(("GCs non-adjusted", "GCs rate adjusted"))
+
+sys.exit()
+
 for i, tuning in enumerate(tunings):
     fname = os.path.join(results_dir, 'pickled', f'fig2_phase-dist_{tuning}.pkl')
     with open(fname, 'rb') as f:
@@ -62,7 +256,7 @@ for i, tuning in enumerate(tunings):
 sns.despine(fig=f2a)
 plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 ax.ticklabel_format(style='sci', scilimits=[0, 0])
-plt.rcParams["svg.fonttype"] = "none"
+
 f2a.savefig(f'{save_dir}figure02_A.svg', dpi=200)
 f2a.savefig(f'{save_dir}figure02_A.png', dpi=200)
 

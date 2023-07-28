@@ -21,9 +21,7 @@ trajectories = [75, 74.5, 74, 73.5, 73, 72.5, 72,
 n_samples = 20
 grid_seeds = np.arange(1,11,1)
 
-# grid_seeds = np.array([1])
-
-tuning = 'no-feedforward'
+tuning = 'no-feedback'
 
 ns_grid_phases = np.empty(0)
 ns_granule_phases = np.empty(0)

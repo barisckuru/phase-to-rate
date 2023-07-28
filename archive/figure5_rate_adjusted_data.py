@@ -20,6 +20,7 @@ from elephant.spike_train_generation import homogeneous_poisson_process
 from quantities import Hz, s, ms
 import scipy.signal
 import copy
+import shelve
 
 
 dirname = os.path.dirname(__file__)
@@ -49,9 +50,15 @@ spikes_full = {}
 
 for tuning in tunings:
     curr_spikes_full = [[] for n in range(2000)]
-    path = os.path.join(results_dir, 'main', str(tuning),  'collective', 'grid-seed_duration_shuffling_tuning_')
-    ns_path = (path + str(grid_seed) + "_2000_non-shuffled_"+str(tuning))
-    granule_spikes = load_spikes(ns_path, "granule", trajectories, n_samples)
+    if tuning == 'full':
+        path = os.path.join(results_dir, 'adjusted_data', str(tuning),  'collective', 'grid-seed_duration_shuffling_tuning_')
+        ns_path = (path + str(grid_seed) + "_2000_shuffled_"+str(tuning))
+        granule_spikes = load_spikes(ns_path, "granule", trajectories, n_samples)
+    else:
+        path = os.path.join(results_dir, 'adjusted_data', str(tuning),  'collective', 'grid-seed_trajectory_poisson-seeds_duration_shuffling_tuning_')
+        ns_path = (path + str(grid_seed) + "_[75]_100-119_2000_shuffled_"+str(tuning))
+        granule_spikes = load_spikes_DMK(ns_path, "granule", trajectories, n_samples)
+
     for k1 in granule_spikes.keys():
         for poisson_sample in granule_spikes[k1]:
             for idx, cell in enumerate(poisson_sample):
@@ -59,12 +66,9 @@ for tuning in tunings:
                     curr_spikes_full[idx].append(spike)
     spikes_full[tuning] = curr_spikes_full
 
-
-
 """Sort spikes"""
 for tuning in tunings:
     spikes_full[tuning] = np.array([np.sort(x) for x in spikes_full[tuning]], dtype=object)
-    # spikes_nofb = np.array([np.sort(x) for x in spikes_nofb], dtype=object)
 
 """Calculate binary spike trains"""
 binary_spikes_full = {}
@@ -72,7 +76,7 @@ for tuning in tunings:
     curr_binary_spikes = np.zeros((spikes_full[tuning].shape[0], 20000))
     for idx, cell in enumerate(spikes_full[tuning]):
         spike_idc = np.array(cell * 10, dtype=int)
-        curr_binary_spikes[idx, spike_idc-1] = 1
+        curr_binary_spikes[idx, spike_idc - 1] = 1
     binary_spikes_full[tuning] = curr_binary_spikes
 
 
@@ -103,7 +107,7 @@ for spike_condition in tunings:
         for cell_idx, cell in enumerate(spikes_full[spike_condition]):
             for spike_idx, spike in enumerate(cell):
                 spike_binary_index = int(spike * 10)
-                curr_spike_density[cell_idx][spike_idx-1] = binary_spikes_convolved[density_condition][cell_idx, spike_binary_index-1]
+                curr_spike_density[cell_idx][spike_idx - 1] = binary_spikes_convolved[density_condition][cell_idx, spike_binary_index - 1]
         spike_density[spike_condition][density_condition] = curr_spike_density
         spike_density_flattened[spike_condition][density_condition] = np.array([x for cell in curr_spike_density for x in cell])
 
@@ -119,14 +123,13 @@ for tuning in tunings:
 """Distinguish deleted from non-deleted spikes"""
 binarized_bins_full = np.zeros((2000, 20))
 for idx, cell in enumerate(spikes_full['full']):
-    spiked_bins = np.array((cell-1) / 100).astype(int)
+    spiked_bins = np.array(cell / 100 - 1).astype(int)
     for sp in spiked_bins:
-        print(idx, sp)
         binarized_bins_full[idx, sp] = 1
 
 binarized_bins_nofb = np.zeros((2000, 20))
 for idx, cell in enumerate(spikes_full['no-feedback']):
-    spiked_bins = np.array((cell-1) / 100).astype(int)
+    spiked_bins = np.array(cell / 100 - 1).astype(int)
     for sp in spiked_bins:
         binarized_bins_nofb[idx, sp] = 1
 
@@ -173,6 +176,8 @@ skaggiest = np.argpartition(full_nofb_percent_change[skaggs_included_cells], -n_
 
 """PLOTTING"""
 """SETUP THE FIGURE LAYOUT AND STYLE"""
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 plt.rcParams["svg.fonttype"] = "none"
 fig = plt.figure()
 gs = fig.add_gridspec(3, 4)

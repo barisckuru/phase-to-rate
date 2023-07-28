@@ -16,27 +16,26 @@ from phase_to_rate import grid_model
 from phase_to_rate import pydentate_integrate
 import sys
 import argparse
+import scipy
+from elephant import spike_train_generation as stg
+from neo.core import AnalogSignal
+import quantities as pq
+from scipy import interpolate
+import pdb
 
 pr = argparse.ArgumentParser(description='Local pattern separation paradigm')
 pr.add_argument('-grid_seed',
                 type=int,
                 help='Grid seed to run',
-                default=10,
+                default=1,
                 dest='grid_seed')
+
 pr.add_argument('-noise_scale',
-                type=float,
+                type=int,
                 help='Scale of noise',
-                default=0.05,
+                default=200,
                 dest='noise_scale')
 args = pr.parse_args()
-
-"""Setup"""
-dirname = os.path.dirname(__file__)
-results_dir = os.path.join(dirname, 'data')
-if not os.path.isdir(results_dir):
-    os.mkdir(results_dir)
-
-neuron_tools.load_compiled_mechanisms()
 
 """Seeding and trajectories"""
 grid_seeds = [args.grid_seed]
@@ -45,6 +44,63 @@ trajectories, p = [75], 100
 
 poisson_seeds = np.arange(p, p + 20, 1)
 poisson_seeds = list(poisson_seeds)
+
+"""LEC NOISE"""
+def lec_noise(n_cells=20, p_seeds=[0]):
+    x = np.linspace(0, 1, 2000)
+    y = np.flip(scipy.signal.sawtooth(2 * np.pi * 40 * x))
+    y += 1
+    y = y / 2
+
+    kernel_size = 20
+    y_smoothed = scipy.ndimage.gaussian_filter1d(y, 5)
+    phase_shift = 25
+    y_smoothed_phase_shifted = y_smoothed[phase_shift:1000+phase_shift] * 50
+    y_smoothed_phase_shifted -= y_smoothed_phase_shifted.min()
+    x = np.linspace(0, 2000, 1000)
+    
+    # Interpolation
+    f = interpolate.interp1d(x, y_smoothed_phase_shifted)
+    x_new = np.linspace(0, 2000, 20000)
+    
+    y_new = f(x_new)
+
+    asig = AnalogSignal(
+        y_new,
+        units=1 * pq.Hz,
+        t_start=0 * pq.s,
+        t_stop=2 * pq.s,
+        sampling_period=0.0001* pq.s
+    )
+
+    spikes = []
+
+    for ps in p_seeds:
+        np.random.seed(ps+4442)
+        curr_spikes = []
+        for gc in range(n_cells):
+
+            curr_train = (
+                stg.inhomogeneous_poisson_process(
+                    asig, refractory_period=0.001 * pq.s, as_array=True
+                )
+                * 1000)
+            curr_spikes.append(curr_train)
+        spikes.append(curr_spikes)
+
+    return spikes
+    
+lec_spikes = lec_noise(n_cells=20, p_seeds=poisson_seeds)
+
+
+# Create spikes
+"""Setup"""
+dirname = os.path.dirname(__file__)
+results_dir = os.path.join(dirname, 'data')
+if not os.path.isdir(results_dir):
+    os.mkdir(results_dir)
+
+neuron_tools.load_compiled_mechanisms()
 
 """Parameters"""
 shuffling = "non-shuffled"  # "non-shuffled" or "shuffled"
@@ -89,23 +145,28 @@ for grid_seed in grid_seeds:
     granule_spikes = {}
     for traj in trajectories:
         granule_spikes[traj] = {}
-        for poisson_seed in poisson_seeds:
+        for idx, poisson_seed in enumerate(poisson_seeds):
             granule_spikes[traj][poisson_seed] = {}
-            granule_spikes_poiss = pydentate_integrate.granule_simulate_noisy(
+            granule_spikes_poiss = pydentate_integrate.granule_simulate_lec_noise(
                 grid_spikes[traj][poisson_seed],
+                lec_spikes[idx],
                 dur_ms=parameters['dur_ms'],
                 network_type=network_type,
                 grid_seed=grid_seed,
                 pp_weight=parameters['pp_weight'],
-                noise_scale=parameters['noise_scale']
+                n_lec_synapses=parameters['noise_scale'],
             )
             granule_spikes[traj][poisson_seed] = granule_spikes_poiss
             
     storage = shelve.open(file_path, writeback=True)
     storage["grid_spikes"] = copy.deepcopy(grid_spikes)
+    storage["lec_spikes"] = copy.deepcopy(lec_spikes)
     storage["granule_spikes"] = copy.deepcopy(granule_spikes)
     storage["parameters"] = parameters
     storage.close()
     print(f"Done simulating {file_name}")
 
-
+# plt.xlim((0, 100))
+# plt.ylim((0, 70))
+# plt.xlabel("Spike time in theta bin")
+# plt.ylabel("Number of Spikes")

@@ -25,6 +25,7 @@ import copy
 from phase_to_rate.neural_coding import load_spikes, rate_n_phase
 from phase_to_rate.perceptron import run_perceptron
 import os
+import sys
 
 
 # file directory

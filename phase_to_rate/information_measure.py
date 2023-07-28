@@ -4,8 +4,8 @@ Created on Wed Dec  1 11:46:36 2021
 @author: baris
 """
 
-from neural_coding import load_spikes, rate_n_phase
-from perceptron import run_perceptron
+from phase_to_rate.neural_coding import load_spikes, rate_n_phase
+from phase_to_rate.perceptron import run_perceptron
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -33,7 +33,7 @@ tunes = ['full', 'no-feedforward', 'no-feedback', 'disinhibited']
 # =============================================================================
 
 def skaggs_information(spike_times, dur_ms, time_bin_size,
-                        phase_bin_size=360, theta_bin_size=100):
+                        phase_bin_size=360, theta_bin_size=100, agg=True):
 
     n_cell = len(spike_times)
     dur_s = int(dur_ms/1000)
@@ -96,7 +96,10 @@ def skaggs_information(spike_times, dur_ms, time_bin_size,
             skaggs_all[cell] = (1/(n_phase_bins*n_time_bins))*np.sum(skaggs)
         # skaggs_info = np.sum(skaggs_all)
         skaggs_info = np.mean(skaggs_all)
-    return skaggs_info
+    if agg:
+        return skaggs_info
+    else:
+        return skaggs_all
 
 # =============================================================================
 # aggraegate spikes from poisson seeds
@@ -139,143 +142,145 @@ def filter_inact_granule(agg_spikes, threshold):
 
 
 
-# =============================================================================
-# load data
-# =============================================================================
-for tuning in tunes:
-    all_spikes = {}
-    for grid_seed in grid_seeds:
-        path = "/home/baris/results/"+str(tuning)+"/collective/grid-seed_duration_shuffling_tuning_"
+if __name__ == '__main__':
+    # =============================================================================
+    # load data
+    # =============================================================================
+    for tuning in tunes:
+        all_spikes = {}
+        for grid_seed in grid_seeds:
+            path = "/home/baris/results/"+str(tuning)+"/collective/grid-seed_duration_shuffling_tuning_"
+            
+            # non-shuffled
+            ns_path = (path + str(grid_seed) + "_2000_non-shuffled_"+str(tuning))
+            grid_spikes = load_spikes(ns_path, "grid", trajectories, n_samples)
+            granule_spikes = load_spikes(ns_path, "granule", trajectories, n_samples)
+            
+            
+            # shuffled
+            s_path = (path + str(grid_seed) + "_2000_shuffled_"+str(tuning))
+            s_grid_spikes = load_spikes(s_path, "grid", trajectories, n_samples)
+            s_granule_spikes = load_spikes(s_path, "granule", trajectories, n_samples)
+            
+            print('shuffled path ok')
         
-        # non-shuffled
-        ns_path = (path + str(grid_seed) + "_2000_non-shuffled_"+str(tuning))
-        grid_spikes = load_spikes(ns_path, "grid", trajectories, n_samples)
-        granule_spikes = load_spikes(ns_path, "granule", trajectories, n_samples)
+            all_spikes[grid_seed] = {"shuffled": {}, "non-shuffled": {}}
+            all_spikes[grid_seed]["shuffled"] = {"grid": s_grid_spikes, "granule": s_granule_spikes}
+            all_spikes[grid_seed]["non-shuffled"] = {"grid": grid_spikes, "granule": granule_spikes}
         
         
-        # shuffled
-        s_path = (path + str(grid_seed) + "_2000_shuffled_"+str(tuning))
-        s_grid_spikes = load_spikes(s_path, "grid", trajectories, n_samples)
-        s_granule_spikes = load_spikes(s_path, "granule", trajectories, n_samples)
+        all_ns_grid = aggr(all_spikes, 'non-shuffled', 'grid')
+        all_ns_grid = filter_inact_granule(all_ns_grid, threshold)
+        all_s_grid = aggr(all_spikes, 'shuffled', 'grid')
+        all_s_grid = filter_inact_granule(all_s_grid, threshold)
+        all_ns_granule = aggr(all_spikes, 'non-shuffled', 'granule')
+        all_ns_granule = filter_inact_granule(all_ns_granule, threshold)
+        all_s_granule = aggr(all_spikes, 'shuffled', 'granule')
+        all_s_granule = filter_inact_granule(all_s_granule, threshold)
         
-        print('shuffled path ok')
-    
-        all_spikes[grid_seed] = {"shuffled": {}, "non-shuffled": {}}
-        all_spikes[grid_seed]["shuffled"] = {"grid": s_grid_spikes, "granule": s_granule_spikes}
-        all_spikes[grid_seed]["non-shuffled"] = {"grid": grid_spikes, "granule": granule_spikes}
-    
-    
-    all_ns_grid = aggr(all_spikes, 'non-shuffled', 'grid')
-    all_ns_grid = filter_inact_granule(all_ns_grid, threshold)
-    all_s_grid = aggr(all_spikes, 'shuffled', 'grid')
-    all_s_grid = filter_inact_granule(all_s_grid, threshold)
-    all_ns_granule = aggr(all_spikes, 'non-shuffled', 'granule')
-    all_ns_granule = filter_inact_granule(all_ns_granule, threshold)
-    all_s_granule = aggr(all_spikes, 'shuffled', 'granule')
-    all_s_granule = filter_inact_granule(all_s_granule, threshold)
-    
-    ns_grid_skaggs = []
-    s_grid_skaggs = []
-    ns_granule_skaggs = []
-    s_granule_skaggs = []
-    
-    for grid in grid_seeds_idx:
-        ns_grid = all_ns_grid[grid]
-        s_grid = all_s_grid[grid]
-        ns_granule = all_ns_granule[grid]
-        s_granule = all_s_granule[grid]
+        ns_grid_skaggs = []
+        s_grid_skaggs = []
+        ns_granule_skaggs = []
+        s_granule_skaggs = []
         
-        ns_grid_skaggs.append(skaggs_information(ns_grid, dur_ms, time_bin,
-                                                 phase_bin_size=phase_bin))
-        s_grid_skaggs.append(skaggs_information(s_grid, dur_ms, time_bin,
-                                                phase_bin_size=phase_bin))
-        ns_granule_skaggs.append(skaggs_information(
-            ns_granule, dur_ms, time_bin, phase_bin_size=phase_bin))
-        s_granule_skaggs.append(skaggs_information(
-            s_granule, dur_ms, time_bin, phase_bin_size=phase_bin))
-        print(f'grid seed {grid}')
-       
-    all_skaggs = np.concatenate((ns_grid_skaggs, s_grid_skaggs,
-                                ns_granule_skaggs, s_granule_skaggs))
-    cell = 20*[tuning +' grid']+20*[tuning + ' granule']
-    shuffling = 2*(10*['non-shuffled']+10*['shuffled'])
-    all_skaggs = np.concatenate((ns_grid_skaggs, s_grid_skaggs,
-                                ns_granule_skaggs, s_granule_skaggs))
-    skaggs_info_all = np.stack((all_skaggs, cell, shuffling), axis=1)
+        for grid in grid_seeds_idx:
+            ns_grid = all_ns_grid[grid]
+            s_grid = all_s_grid[grid]
+            ns_granule = all_ns_granule[grid]
+            s_granule = all_s_granule[grid]
+            
+            ns_grid_skaggs.append(skaggs_information(ns_grid, dur_ms, time_bin,
+                                                     phase_bin_size=phase_bin))
+            s_grid_skaggs.append(skaggs_information(s_grid, dur_ms, time_bin,
+                                                    phase_bin_size=phase_bin))
+            ns_granule_skaggs.append(skaggs_information(
+                ns_granule, dur_ms, time_bin, phase_bin_size=phase_bin))
+            s_granule_skaggs.append(skaggs_information(
+                s_granule, dur_ms, time_bin, phase_bin_size=phase_bin))
+            print(f'grid seed {grid}')
+           
+        all_skaggs = np.concatenate((ns_grid_skaggs, s_grid_skaggs,
+                                    ns_granule_skaggs, s_granule_skaggs))
+        cell = 20*[tuning +' grid']+20*[tuning + ' granule']
+        shuffling = 2*(10*['non-shuffled']+10*['shuffled'])
+        all_skaggs = np.concatenate((ns_grid_skaggs, s_grid_skaggs,
+                                    ns_granule_skaggs, s_granule_skaggs))
+        skaggs_info_all = np.stack((all_skaggs, cell, shuffling), axis=1)
 
-    if tuning == 'full':
-        skaggs = skaggs_info_all
+        if tuning == 'full':
+            skaggs = skaggs_info_all
+        else:
+            skaggs = np.concatenate((skaggs, skaggs_info_all[20:, :]), axis=0)
+
+    
+    phase_bin_pi = phase_bin/180
+    
+    if int(phase_bin_pi) == 2:
+        phase_bin_pi = ''
     else:
-        skaggs = np.concatenate((skaggs, skaggs_info_all[20:, :]), axis=0)
-
-phase_bin_pi = phase_bin/180
-
-if int(phase_bin_pi) == 2:
-    phase_bin_pi = ''
-else:
-    phase_bin_pi = ', phase bin = ' + str(phase_bin_pi) + 'pi'
-
-df_skaggs = pd.DataFrame(skaggs, columns=['info', 'cell', 'shuffling'])
-df_skaggs['info'] = df_skaggs['info'].astype('float')
-plt.close('all')
-sns.barplot(data=df_skaggs, x='cell', y='info', hue='shuffling', 
-            ci='sd', capsize=0.2, errwidth=(2))
-plt.title(f'Skaggs Information - Average of Population'
-          +f'\n cells firing less than {threshold} spikes are filtered out'
-          +f'\n 10 grid seeds, 20 poisson seeds aggregated,\n'
-          +f'spatial bin = {spatial_bin} cm{phase_bin_pi}')
-
-
-df_skaggs.to_pickle('figure_2I_skaggs_non-adjusted.pkl')
-df_skaggs.to_csv('figure_2I_skaggs_non-adjusted.csv')
-df_skaggs.to_excel('figure_2I_skaggs_non-adjusted.xlsx')
-#isolated effects
-
-full_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'full granule') & 
-                                 (df_skaggs['shuffling'] == 'non-shuffled')]
-            ['info']).reset_index(drop=True))
-full_s = ((df_skaggs.loc[(df_skaggs['cell'] == 'full granule') & 
-                                 (df_skaggs['shuffling'] == 'shuffled')]
-            ['info']).reset_index(drop=True))
-noff_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'no-feedforward granule') & 
-                                 (df_skaggs['shuffling'] == 'non-shuffled')]
-            ['info']).reset_index(drop=True))
-noff_s = ((df_skaggs.loc[(df_skaggs['cell'] == 'no-feedforward granule') & 
-                                 (df_skaggs['shuffling'] == 'shuffled')]
-            ['info']).reset_index(drop=True))
-nofb_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'no-feedback granule') & 
-                                 (df_skaggs['shuffling'] == 'non-shuffled')]
-            ['info']).reset_index(drop=True))
-nofb_s = ((df_skaggs.loc[(df_skaggs['cell'] == 'no-feedback granule') & 
-                                 (df_skaggs['shuffling'] == 'shuffled')]
-            ['info']).reset_index(drop=True))
-noinh_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'disinhibited granule') & 
-                                 (df_skaggs['shuffling'] == 'non-shuffled')]
-            ['info']).reset_index(drop=True))
-noinh_s = ((df_skaggs.loc[(df_skaggs['cell'] == 'disinhibited granule') & 
-                                 (df_skaggs['shuffling'] == 'shuffled')]
-            ['info']).reset_index(drop=True))
-
-
-info = pd.concat((full_ns-noff_ns, full_s-noff_s,
-                 full_ns-nofb_ns, full_s-nofb_s,
-                 full_ns-noinh_ns, full_s-noinh_s),
-                 axis=0).reset_index()
-info = info.rename(columns={'index': 'grid_seed'})
-isolated = (20*['isolated feedforward']+
-            20*['isolated feedback']+
-            20*['isolated inhibition'])
-shuffling = 3*(10*['non-shuffled']+10*['shuffled'])
-info['isolated'] = isolated
-info['shuffling'] = shuffling
-
-fig, ax = plt.subplots()
-sns.catplot(x='isolated', y='info', hue='shuffling', data=info, ax=ax, kind='bar')
-
-
-
-#save data
-with pd.ExcelWriter('skaggs_results.xlsx') as writer:
-    df_skaggs.to_excel(writer, sheet_name='skaggs information')
-    info.to_excel(writer, sheet_name='isolated inhibition')
-
+        phase_bin_pi = ', phase bin = ' + str(phase_bin_pi) + 'pi'
+    
+    df_skaggs = pd.DataFrame(skaggs, columns=['info', 'cell', 'shuffling'])
+    df_skaggs['info'] = df_skaggs['info'].astype('float')
+    plt.close('all')
+    sns.barplot(data=df_skaggs, x='cell', y='info', hue='shuffling', 
+                ci='sd', capsize=0.2, errwidth=(2))
+    plt.title(f'Skaggs Information - Average of Population'
+              +f'\n cells firing less than {threshold} spikes are filtered out'
+              +f'\n 10 grid seeds, 20 poisson seeds aggregated,\n'
+              +f'spatial bin = {spatial_bin} cm{phase_bin_pi}')
+    
+    
+    df_skaggs.to_pickle('figure_2I_skaggs_non-adjusted.pkl')
+    df_skaggs.to_csv('figure_2I_skaggs_non-adjusted.csv')
+    df_skaggs.to_excel('figure_2I_skaggs_non-adjusted.xlsx')
+    #isolated effects
+    
+    full_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'full granule') & 
+                                     (df_skaggs['shuffling'] == 'non-shuffled')]
+                ['info']).reset_index(drop=True))
+    full_s = ((df_skaggs.loc[(df_skaggs['cell'] == 'full granule') & 
+                                     (df_skaggs['shuffling'] == 'shuffled')]
+                ['info']).reset_index(drop=True))
+    noff_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'no-feedforward granule') & 
+                                     (df_skaggs['shuffling'] == 'non-shuffled')]
+                ['info']).reset_index(drop=True))
+    noff_s = ((df_skaggs.loc[(df_skaggs['cell'] == 'no-feedforward granule') & 
+                                     (df_skaggs['shuffling'] == 'shuffled')]
+                ['info']).reset_index(drop=True))
+    nofb_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'no-feedback granule') & 
+                                     (df_skaggs['shuffling'] == 'non-shuffled')]
+                ['info']).reset_index(drop=True))
+    nofb_s = ((df_skaggs.loc[(df_skaggs['cell'] == 'no-feedback granule') & 
+                                     (df_skaggs['shuffling'] == 'shuffled')]
+                ['info']).reset_index(drop=True))
+    noinh_ns = ((df_skaggs.loc[(df_skaggs['cell'] == 'disinhibited granule') & 
+                                     (df_skaggs['shuffling'] == 'non-shuffled')]
+                ['info']).reset_index(drop=True))
+    noinh_s = ((df_skaggs.loc[(df_skaggs['cell'] == 'disinhibited granule') & 
+                                     (df_skaggs['shuffling'] == 'shuffled')]
+                ['info']).reset_index(drop=True))
+    
+    
+    info = pd.concat((full_ns-noff_ns, full_s-noff_s,
+                     full_ns-nofb_ns, full_s-nofb_s,
+                     full_ns-noinh_ns, full_s-noinh_s),
+                     axis=0).reset_index()
+    info = info.rename(columns={'index': 'grid_seed'})
+    isolated = (20*['isolated feedforward']+
+                20*['isolated feedback']+
+                20*['isolated inhibition'])
+    shuffling = 3*(10*['non-shuffled']+10*['shuffled'])
+    info['isolated'] = isolated
+    info['shuffling'] = shuffling
+    
+    fig, ax = plt.subplots()
+    sns.catplot(x='isolated', y='info', hue='shuffling', data=info, ax=ax, kind='bar')
+    
+    
+    
+    #save data
+    with pd.ExcelWriter('skaggs_results.xlsx') as writer:
+        df_skaggs.to_excel(writer, sheet_name='skaggs information')
+        info.to_excel(writer, sheet_name='isolated inhibition')
+    

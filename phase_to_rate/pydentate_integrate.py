@@ -25,10 +25,10 @@ def granule_simulate(
     n_mossy=60,
     n_basket=24,
     n_hipp=24
+
 ):
     """
-
-    Simulate biophysically realistic model of the dentate gyrus (pyDentate).
+    Simulate biophysically realistic model of the dentate gyrus (pydentate).
 
     Parameters
     ----------
@@ -113,9 +113,7 @@ def granule_simulate(
 
     return granule_spikes
 
-
-
-def granule_simulate_noisy(
+def granule_simulate_all_cell_types(
     grid_spikes,
     dur_ms=2000,
     network_type='full',
@@ -126,11 +124,10 @@ def granule_simulate_noisy(
     n_granule=2000,
     n_mossy=60,
     n_basket=24,
-    n_hipp=24,
-    noise_scale=0.05
+    n_hipp=24
 ):
     """
-    Simulate biophysically realistic model of the dentate gyrus (pyDentate).
+    Simulate biophysically realistic model of the dentate gyrus (pydentate).
 
     Parameters
     ----------
@@ -189,8 +186,6 @@ def granule_simulate_noisy(
 
     PP_to_GCs = np.array(PP_to_GCs)
 
-    
-
     BC_indices = np.arange(n_basket)
     start_idc = np.array(((start_idc / float(n_granule)) * 24), dtype=int)
 
@@ -210,6 +205,111 @@ def granule_simulate_noisy(
         network_type=network_type,
         pp_weight=pp_weight,
     )
+    neuron_tools.run_neuron_simulator(t_stop=dur_ms)
+
+    granule_spikes = nw.populations[0].get_timestamps()
+    mossy_spikes = nw.populations[1].get_timestamps()
+    basket_spikes = nw.populations[2].get_timestamps()
+    hipp_spikes = nw.populations[3].get_timestamps()
+
+    return granule_spikes, mossy_spikes, basket_spikes, hipp_spikes
+
+
+
+def granule_simulate_noisy(
+    grid_spikes,
+    dur_ms=2000,
+    network_type='full',
+    grid_seed=1,
+    pp_weight=9e-4,
+    input_scale=1000,
+    n_grid=200,
+    n_granule=2000,
+    n_mossy=60,
+    n_basket=24,
+    n_hipp=24,
+    noise_scale=0.05
+):
+    """
+    Simulate biophysically realistic model of the dentate gyrus (pyDentate).
+
+    Parameters
+    ----------
+    grid_spikes : list
+        Spike times of grid cell population.
+    dur_ms : int
+        Duration of the simulation.
+    network_type : str
+        Tuning of the network.
+    grid_seed : int
+        Seed for the grid cell population
+        also seeds the dentate gyrus model.
+    pp_weight : int
+        Connection weight from perforant path
+        from grid cell to dentate gyrus cells.
+    input_scale : int
+        Scale of the input. The default is 1000.
+    n_grid : int
+        Number of grid cells. The default is 200.
+    n_granule : int
+        Number granule cells. The default is 2000.
+    n_mossy : int
+        Number of mossy cells. The default is 60.
+    n_basket : int
+        Number of basket cells. The default is 24.
+    n_hipp : int
+        Number of Hillar perforant path cells. The default is 24.
+
+    Raises
+    ------
+    ValueError
+        If tuning of network is invalid.
+
+    Returns
+    -------
+    granule_spikes : list
+        Granule cell spike times in a list.
+    """
+
+    np.random.seed(grid_seed)
+    # Randomly choose target cells for the PP lines
+    gauss_gc = stats.norm(loc=1000, scale=input_scale)
+    gauss_bc = stats.norm(loc=12, scale=(input_scale / float(n_granule)) * 24)
+    pdf_gc = gauss_gc.pdf(np.arange(n_granule))
+    pdf_gc = pdf_gc / pdf_gc.sum()
+    pdf_bc = gauss_bc.pdf(np.arange(n_basket))
+    pdf_bc = pdf_bc / pdf_bc.sum()
+    GC_indices = np.arange(n_granule)
+    start_idc = np.random.randint(0, n_granule - 1, size=n_grid)
+
+    PP_to_GCs = []
+    for x in start_idc:
+        curr_idc = np.concatenate((GC_indices[x:n_granule], GC_indices[0:x]))
+        PP_to_GCs.append(np.random.choice(curr_idc,
+                                          size=100, replace=False, p=pdf_gc))
+
+    PP_to_GCs = np.array(PP_to_GCs)
+    pdb.set_trace()
+    BC_indices = np.arange(n_basket)
+    start_idc = np.array(((start_idc / float(n_granule)) * 24), dtype=int)
+
+    PP_to_BCs = []
+    for x in start_idc:
+        curr_idc = np.concatenate((BC_indices[x:n_basket], BC_indices[0:x]))
+        PP_to_BCs.append(np.random.choice(curr_idc,
+                                          size=1, replace=False, p=pdf_bc))
+
+    PP_to_BCs = np.array(PP_to_BCs)
+
+    nw = net_tunedrev.TunedNetwork(
+        None,
+        np.array(grid_spikes, dtype=object),
+        np.array(PP_to_GCs),
+        np.array(PP_to_BCs),
+        network_type=network_type,
+        pp_weight=pp_weight,
+    )
+
     dt = 0.1
 
     """CREATE NOISE"""
@@ -232,11 +332,120 @@ def granule_simulate_noisy(
     nw.populations[0].voltage_recording(range(2000))
 
     neuron_tools.run_neuron_simulator(t_stop=dur_ms, dt_sim=dt)
-    granule_spikes = [x[0].as_numpy() for x in nw.populations[0].ap_counters]
+    # granule_spikes = [x[0].as_numpy() for x in nw.populations[0].ap_counters]
+    granule_spikes = nw.populations[0].get_timestamps()
 
 
     return granule_spikes
 
 
+def granule_simulate_lec_noise(
+    grid_spikes,
+    lec_spikes,
+    dur_ms=2000,
+    network_type='full',
+    grid_seed=1,
+    pp_weight=9e-4,
+    input_scale=1000,
+    n_grid=200,
+    n_granule=2000,
+    n_mossy=60,
+    n_basket=24,
+    n_hipp=24,
+    n_lec=20,
+    n_lec_synapses=100
+):
+    """
+    Simulate biophysically realistic model of the dentate gyrus (pydentate).
 
+    Parameters
+    ----------
+    grid_spikes : list
+        Spike times of grid cell population.
+    dur_ms : int
+        Duration of the simulation.
+    network_type : str
+        Tuning of the network.
+    grid_seed : int
+        Seed for the grid cell population
+        also seeds the dentate gyrus model.
+    pp_weight : int
+        Connection weight from perforant path
+        from grid cell to dentate gyrus cells.
+    input_scale : int
+        Scale of the input. The default is 1000.
+    n_grid : int
+        Number of grid cells. The default is 200.
+    n_granule : int
+        Number granule cells. The default is 2000.
+    n_mossy : int
+        Number of mossy cells. The default is 60.
+    n_basket : int
+        Number of basket cells. The default is 24.
+    n_hipp : int
+        Number of Hillar perforant path cells. The default is 24.
+
+    Raises
+    ------
+    ValueError
+        If tuning of network is invalid.
+
+    Returns
+    -------
+    granule_spikes : list
+        Granule cell spike times in a list.
+
+    """
+    np.random.seed(grid_seed)
+    # Randomly choose target cells for the PP lines
+    gauss_gc = stats.norm(loc=1000, scale=input_scale)
+    gauss_bc = stats.norm(loc=12, scale=(input_scale / float(n_granule)) * 24)
+    pdf_gc = gauss_gc.pdf(np.arange(n_granule))
+    pdf_gc = pdf_gc / pdf_gc.sum()
+    pdf_bc = gauss_bc.pdf(np.arange(n_basket))
+    pdf_bc = pdf_bc / pdf_bc.sum()
+    GC_indices = np.arange(n_granule)
+    start_idc = np.random.randint(0, n_granule - 1, size=n_grid)
+
+    PP_to_GCs = []
+    for x in start_idc:
+        curr_idc = np.concatenate((GC_indices[x:n_granule], GC_indices[0:x]))
+        PP_to_GCs.append(np.random.choice(curr_idc,
+                                          size=100, replace=False, p=pdf_gc))
+
+    PP_to_GCs = np.array(PP_to_GCs)
+    
+    """Create LEC noise inputs.
+    Each LEC cell chooses 100 random GCs"""
+    LEC_to_GCs = []
+    for x in range(n_lec):
+        LEC_to_GCs.append(np.random.choice(range(2000), size=n_lec_synapses, replace=False))
+    LEC_to_GCs = np.array(LEC_to_GCs)
+
+    BC_indices = np.arange(n_basket)
+    start_idc = np.array(((start_idc / float(n_granule)) * 24), dtype=int)
+
+    PP_to_BCs = []
+    for x in start_idc:
+        curr_idc = np.concatenate((BC_indices[x:n_basket], BC_indices[0:x]))
+        PP_to_BCs.append(np.random.choice(curr_idc,
+                                          size=1, replace=False, p=pdf_bc))
+
+    PP_to_BCs = np.array(PP_to_BCs)
+
+    nw = net_tunedrev.TunedNetworkPlusLEC(
+        None,
+        np.array(grid_spikes, dtype=object),
+        np.array(lec_spikes, dtype=object),
+        np.array(PP_to_GCs),
+        np.array(LEC_to_GCs),
+        np.array(PP_to_BCs),
+        network_type=network_type,
+        pp_weight=pp_weight,
+    )
+    neuron_tools.run_neuron_simulator(t_stop=dur_ms)
+
+    granule_spikes = nw.populations[0].get_timestamps()
+
+    return granule_spikes
 
